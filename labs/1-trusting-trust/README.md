@@ -495,8 +495,7 @@ the original, uninfected system C compiler and replaces the infected
 system `compiler` binary with the new version, the attack is now gone.
 For example:
 
-        # compile trojan --- but assume does not 
-        # have a self-replicating attack.
+        # compile trojan --- but assume does not have a self-replicating attack.
         % ./compiler trojan-compiler.c -o trojan-compiler  
 
         # replace "system" compiler
@@ -508,8 +507,7 @@ For example:
         user: ken
         successful login: <ken>   # great, still works!
 
-        # now recompile the system compiler using the 
-        # attacked compiler
+        # now recompile the system compiler using the attacked compiler
         % ./compiler compiler.c -o compiler
         compile:19: could have run your attack here!!  
 
@@ -549,8 +547,7 @@ compiler is the same:
     # 2. compile compiler.c with the attacked copy
     % ./attacked-compiler.0 ../step2/compiler.c -o attacked-compiler.1
 
-    # 3. make sure they are the same! (MacOS users: see note
-    # below.)
+    # 3. make sure they are the same! (MacOS users: see note below.)
     % diff attacked-compiler.0 attacked-compiler.1
 
     # yea!  at this point we will automatically regenerate our attack
