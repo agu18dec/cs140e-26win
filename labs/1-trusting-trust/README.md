@@ -157,7 +157,7 @@ we have three single-file programs:
   - `compiler.c`: the clean unhacked compiler, with no attack.
     It can compile itself:
     
-            # generate a new compiler binary
+            # generate a new compiler binary <compiler>
             % compiler compiler.c -o compiler
             # still works
             % compiler compiler.c -o compiler
@@ -228,9 +228,15 @@ we have three single-file programs:
     with the hack and recompile `compiler.c` with its flawed binary over
     and over and have all the evil self-replicate:
 
-            # <compiler> will now inject the attack
+            # initial state: <compler> is clean, <login> works correctly:
+            % compiler login.c -o login
+            % login
+            username: ken
+            Not such user: exiting.
+
+            # evil state: generate a <compiler> that injects attack
             % trojan-compiler compiler.c -o compiler
-            # don't need trojan anymore!
+            # <compiler> now evil: don't need trojan anymore!
             % rm trojan-compiler trojan-compiler.c
             # test it
             % compiler compiler.c -o compiler
@@ -242,6 +248,8 @@ we have three single-file programs:
             % compiler compiler.c -o compiler
             % compiler compiler.c -o compiler
             % compiler login.c -o login
+
+            # final state: backdoor. 
             % login
             username: ken
             Successful login!
