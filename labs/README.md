@@ -16,8 +16,9 @@ Unlike all subsequent labs, our first two don't use hardware.  They should
 give a good feel for whether the class works for you without requiring
 a hardware investment.
 
-  - [0-intro](0-intro): the intro (non-lab) lecture.
-
+  - [0-intro](0-intro): the intro (non-lab) lecture, plus some
+    machine code examples showing how observability interacts with
+    compiler optimization.
 
   - [1-trusting-trust](1-trusting-trust): Ken Thompson is
     our patron saint of operating systems --- brilliant, with a gift
@@ -33,7 +34,6 @@ The first few labs will writing the low-level code needed to run the
 r/pi and using modern techniques to validate it.  Doing so will remove
 magic from what is going on since all of the interesting code on both
 the pi and Unix side will be written by you:
-
 
 ====>
 
