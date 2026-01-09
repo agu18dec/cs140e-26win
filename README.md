@@ -8,9 +8,16 @@
 Tl;dr:
   - 140E is a lab class, so [jump right to the labs](./labs/README.md).
 
+
 CS140E is an introductory operating systems course.  This course differs
 from most OS courses in that it uses real hardware instead of a fake
 simulator, and almost all of the code will be written by you.
+
+The class is tuned for people who love to hack.  It is designed to
+go fast, and be real.  There are no lectures.  We do two labs a week,
+starting at 530pm and going til you feel like leaving --- generally, at
+least some staff will be here til midnight helping but you can (of course)
+work whenever and wherever you want as long as you finish within a week.
 
 By the end of the class you will have built your own simple, clean OS
 for the widely-used, ARM-based [Raspberry Pi][raspberrypi] --- including
@@ -21,12 +28,6 @@ embedded projects.
 We try to work directly with primary-sources (the Broadcom and ARMv6
 manuals, various datasheets) since learning to understand such prose is
 one of the super-powers of good systems hackers.  
-
-The class is tuned for people who love to hack.  It is designed to
-go fast, and be real.  There are no lectures.  We do two labs a week,
-starting at 530pm and going til you feel like leaving --- generally, at
-least some staff will be here til midnight helping but you can (of course)
-work whenever and wherever you want as long as you finish within a week.
 
 After this quarter, you'll know/enact many cool things your peers do not.
 You will also have a too-rare concrete understanding of how computation
@@ -59,11 +60,6 @@ fun quarter :)
 
 ------------------------------------------------------------------------
 #### Who should take this class.
-
-The goal of the class is to help students who are very motivated and/or
-very good to go far, quickly.  We focus on building small, simple but
-real OS subsystems --- threading, virtual memory, etc --- that can be
-used to build many other things.
 
 You should take this class if:
 
@@ -104,42 +100,11 @@ requirement.
       to write more code than I have since grad school.  At my age,
       that's an unusual result :)
 
-#### What this class is not
-
-A quick skim might falsely pattern-match on a couple of things:
-
-   1. cs140e is *NOT* an easier version of cs212.  In fact, it can
-      be quite a bit harder, since we work with raw hardware, and
-      primarily use raw datasheets and ARMv6 architecture manuals
-      rather than pre-digested text books or simulators.
-
-      I'd say about 1/3 of the teaching evals from last year explicitly
-      stated "do not take cs140e as an easier cs212".
-
-      On the plus side, this approach is the adult way to do things,
-      so you will be better prepared after the class for operating
-      autonomously in the real world without safety nets or help.
-      Everything you'll build will be stuff we personally found useful.
-      There is no (intentional) busywork.
-
-   2. Similarly, while we do use a raspberry pi for this class, and there
-      are tons of blog posts/instructables/classes for novices showing
-      how to use the r/pi to do simple things, this class is not that.
-
-      You'll be writing virtual memory systems, SD card file systems,
-      threads, i2c device drivers on raw hardware rather than
-      cut-and-pasting some python on a library to blinky a light.
-
-      We use the r/pi because its fairly cheap, holds up to electrical
-      mistakes pretty well, runs a legit processor with legit hardware
-      and is small enough to carry around easily.
-
 With that said, I set aside the entire quarter to work on this course,
 so am happy to help people that need it --- some of the biggest success
 stories from past years were from students that had an initially large
 gap between their understanding and the topic but started to really
 "get it" after 4-5 weeks of struggle.
-
 
 ------------------------------------------------------------------------
 ### Lab policies.
@@ -158,15 +123,16 @@ guarantee that you will be pushed up a grade if you are on the border.
 
    - To repeat: You *must* complete the lab within a week of it being
      issued.
+   - To repeat: You *must* complete the lab within a week of it being
+     issued.
+   - To repeat: You *must* complete the lab within a week of it being
+     issued.
 
    - PRELABS: Before each lab there will be some preparatory reading,
      which will typically include a short set of questions you need to
      answer and turn in *before* the lab begins.  This is an attempt
      to make the labs more information-dense by handling basic stuff
      outside of it, and focusing mostly on any tricky details in it.
-
-   - There will be three homeworks total, which will consist of integrating
-     previous labs and submitting working code.
 
    - You can leave lab at any time, but please either be there at the 
      start for when we discuss any important features of the night's
@@ -188,7 +154,6 @@ First things first:
     for more discussion.
 
  2. Look in the [docs](docs) directory to get a feel for what is there.
-
 
 [cs212]: https://cs212.stanford.edu
 [raspberrypi]: https://www.raspberrypi.org
