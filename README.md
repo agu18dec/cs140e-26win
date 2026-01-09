@@ -1,8 +1,9 @@
-## CS140E: embedded operating systems (Engler, Winter, 2026)
 
 <p align="center">
   <img src="labs/lab-memes/2026-140e.jpg" width="600" />
 </p>
+
+## CS140E: embedded operating systems (Engler, Winter, 2026)
 
 Tl;dr:
   - It's a lab class, so [jump right to the labs](./labs/README.md).
