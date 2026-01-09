@@ -6,19 +6,36 @@
 ## CS140E: embedded operating systems (Engler, Winter, 2026)
 
 Tl;dr:
-  - It's a lab class, so [jump right to the labs](./labs/README.md).
+  - 140E is a lab class, so [jump right to the labs](./labs/README.md).
 
-CS140E is an introductory operating systems course. It roughly covers
-the same high-level material as [CS 212][cs212] (formerly CS 140), but
-with a focus on embedded systems, interacting directly with hardware,
-and verification. Both courses cover concepts such as virtual memory,
-filesystems, networking, and scheduling, but take different approaches
-to doing so. By the end of 140E, you will have (hopefully) built your
-own simple, clean operating system for the widely-used, ARM-based
-[Raspberry Pi][raspberrypi].
+CS140E is an introductory operating systems course.  This course differs
+from most OS courses in that it uses real hardware instead of a fake
+simulator, and almost all of the code will be written by you.
+
+By the end of the class you will have built your own simple, clean OS
+for the widely-used, ARM-based [Raspberry Pi][raspberrypi] --- including
+interrupts, threads, virtual memory, and a simple FAT32 file system.
+Your OS should serve as a good base for interesting, real, sensor-based /
+embedded projects.
+
+We try to work directly with primary-sources (the Broadcom and ARMv6
+manuals, various datasheets) since learning to understand such prose is
+one of the super-powers of good systems hackers.  
+
+The class is tuned for people who love to hack.  It is designed to
+go fast, and be real.  There are no lectures.  We do two labs a week,
+starting at 530pm and going til you feel like leaving --- generally, at
+least some staff will be here til midnight helping but you can (of course)
+work whenever and wherever you want as long as you finish within a week.
+
+After this quarter, you'll know/enact many cool things your peers do not.
+You will also have a too-rare concrete understanding of how computation
+works on real hardware.   This understanding will serve you in many other
+contexts.  For what it is worth, everything you build will be stuff we
+found personally useful.   There will be zero (intentional) busy-work.
 
 If you're debating taking the class:
- - Here is [last year's class for reference][2024]
+ - Here is [last year's class for reference][2025] ([the wrap-up summary][2025-summary] should be especially useful.)
  - And a short guide on [Should I take CS 140E?](guides/why-140e.md)
 
 We have an unusually strong and varied staff this year.  Should be a
@@ -34,34 +51,6 @@ fun quarter :)
   - Ron Dubinsky  (Paxos+networking)
   - Stuart Sul (ELF, real world, and top-tier AI)
 
-------------------------------------------------------------------------
-### Details
-
-140e is a lab-based class with no explicit lectures.  We will do two
-five to eight hour labs each week.  You should be able to complete
-almost all of the lab in one sitting.  There will be several homeworks,
-that act as mini-capstone projects tying together the preceding labs.
-
-By the end of the class you will have built your own simple, clean OS
-for the widely-used, ARM-based raspberry pi --- including interrupts,
-threads, virtual memory, and a simple file system.  Your OS should serve
-as a good base for interesting, real, sensor-based / embedded projects.
-
-We try to work directly with primary-sources (the Broadcom and ARM6
-manuals, various datasheets) since learning to understand such prose is
-one of the super-powers of good systems hackers.  It will also give you
-the tools to go off on your own after the course and fearlessly build
-sensor-based devices using only their datasheets.
-
-This course differs from most OS courses in that it uses real hardware
-instead of a fake simulator, and almost all of the code will be written
-by you.
-
-After this quarter, you'll know/enact many cool things your peers do not.
-You will also have a too-rare concrete understanding of how computation
-works on real hardware.   This understanding will serve you in many other
-contexts.  For what it is worth, everything you build will be stuff we
-found personally useful.   There will be zero (intentional) busy-work.
 
 
 <p align="center">
@@ -203,6 +192,8 @@ First things first:
 
 [cs212]: https://cs212.stanford.edu
 [raspberrypi]: https://www.raspberrypi.org
+[2025]: https://github.com/dddrrreee/cs140e-25win
+[2025-summary]: https://github.com/dddrrreee/cs140e-25win/blob/main/labs/what-did-we-learn.md
 [2024]: https://github.com/dddrrreee/cs140e-24win
 [2023]: https://github.com/dddrrreee/cs140e-23win
 [2022]: https://github.com/dddrrreee/cs140e-22win
