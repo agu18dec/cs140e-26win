@@ -65,7 +65,6 @@ You should take this class if:
 
    1. You write systems code well OR (you don't yet write code well
       AND have a lot of time to devote to the class);
-
    2. AND you find these systems topics interesting.
 
 The people that found the class valuable in the past were entirely drawn
