@@ -136,14 +136,14 @@ First things first:
 
  1. clone the class repository:
 
-       git clone git@github.com:dddrrreee/cs140e-26win.git
+       `git clone git@github.com:dddrrreee/cs140e-26win.git`
 
-    You may need to install `git`, create a `github` account and register
-    a key with github (if you don't want to do the latter, use the
+    You may need to install `git`, create a GitHub account and register
+    a key with GitHub (if you don't want to do the latter, use the
     `http` clone method).  See the our [git instructions](guides/git.md)
     for more discussion.
 
- 2. Look in the [docs](docs) directory to get a feel for what is there.
+ 2. Look in the [labs](./labs/) directory to get a feel for what is there.
 
 [cs212]: https://cs212.stanford.edu
 [raspberrypi]: https://www.raspberrypi.org
