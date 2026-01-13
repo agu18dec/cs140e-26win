@@ -1,83 +1,70 @@
-$(error "don't modify the code here: make a copy if you want to modify)
+# Makefile.tutorial -- a tiny guided tour of how this Makefile works.
+# Read top to bottom; every variable is used later in a rule.
 
-# simple, self-contained Makefile for today's lab's programs.
-# you should read through and understand how it works!
+# 1) What are we building?
+# The programs used in today's lab: each has a notmain.
+# NOTE: this variable and many of the others are not required:
+# we use them to (try to) add clarify.  The only real requirement
+# is specifying what depends on what (the rules from "all:" to EOF).
+PROG_SRC := 1-blink.c 2-blink.c 3-loopback.c
 
-# the programs we build.  since each program starts with a number
-# and no other file does, we could automatically get them using 
-# a regular expression:
-#   PROG_SRC = $(wildcard [0-9]-*.c)
-# but we list them out explicitly to simplify things.
-PROG_SRC = 1-blink.c  2-blink.c 3-loopback.c 4-act-blink.c 
+# 2) For each PROG_SRC X.c we build a X.bin
+PROGS := $(PROG_SRC:.c=.bin)
 
-# the object files each program depends on.
-objs := start.o gpio.o delay.o  mem-barrier.o
+# These common object files are linked into every program
+# so we track them using a variable
+OBJS := start.o gpio.o libpi.o
 
-# the name of the stripped binaries we make: these can be run
-# using the bootloader.
-progs   := $(PROG_SRC:.c=.bin)
-# each .bin file has a .list file containing a human-readable
-# disassembly of its machine code
-lists   := $(PROG_SRC:.c=.list)
-# the elf files used to generate the .bin 
-elfs    := $(PROG_SRC:.c=.elf)
-
-# linker script to lay out the executable 
+# The linker script decides where code/data go in memory.
 MEMMAP := ./memmap
 
-# dependencies: recompile everything if any of these change.
-DEPS := ./Makefile  rpi.h
+# 3) Cross‑compiler toolchain: your laptop probably does not
+# have the same CPU as the pi, so we have to "cross-compile"
+# using a different compiler than your native one.  You set
+# this up in lab: 0-setup-pi.
+ARM     := arm-none-eabi
+CC      := $(ARM)-gcc
 
-# disable built-in rules.
-.SUFFIXES:
+# 4) Compiler flags.
+# gnu99 + error checking: don't compile if with warnings.
+CFLAGS := -O -Wall -Wno-unused-variable -Werror -std=gnu99 
+# no C runtime or libc.
+CFLAGS += -nostdlib -nostartfiles -ffreestanding 
+# our pi zero w runs on an ARM1176JZF-S (ARMv6ZK) processor
+CFLAGS += -mcpu=arm1176jzf-s
+# avoids unaligned access traps.
+CFLAGS += -mno-unaligned-access
 
-# short-hand variables for the cross-compilation tools we use
-ARM := arm-none-eabi
-CC  := $(ARM)-gcc
-LD  := $(ARM)-ld
-AS  := $(ARM)-as
-OD  := $(ARM)-objdump
-OCP := $(ARM)-objcopy
-AS  := $(ARM)-as
+# 5) The default target: build all binaries.
+all: $(PROGS)
 
-# The gcc compiler flags:
-#    -Wall: warn about a bunch of suss things.
-#    -Werror = must fix errors
-#    -O: optimize (which allows for more -Wall error checking)
-CFLAGS := -O -Wall -Wno-unused-variable -Werror \
-          -nostdlib -nostartfiles -ffreestanding  -march=armv6 -std=gnu99  
+# 6) The rule for building a .bin.  We incidentally also
+# produce a .elf and .list (disassembled elf).
+%.bin: %.o $(OBJS) $(MEMMAP) Makefile rpi.h
+	# $* is the shared name: for target 1-blink.bin, $* == 1-blink
+	# $< is the first input file (the .o built from 1-blink.c)
+	$(CC) $(CFLAGS) $(OBJS) $< -T $(MEMMAP) -o $*.elf
+	$(ARM)-objcopy $*.elf -O binary $@
+	$(ARM)-objdump -D $*.elf > $*.list
 
-# the assembler flags (for start.S)
-ASFLAGS = --warn --fatal-warnings -mcpu=arm1176jzf-s -march=armv6zk
-
-# our target: all the .bin files.
-all:  $(progs)
-
-# rules to generate .elf->.list->.bin
-$(elfs): %.elf: %.o $(objs)  $(DEPS)  $(MEMMAP)
-	$(CC) $(CFLAGS) $(objs) $< -T $(MEMMAP) -o $@ 
-
-# generate a .list file from an elf file so 
-# we can see what the machine code looks like
-$(lists): %.list: %.elf
-	$(OD) -D  $< > $@
-
-# generate a .bin file from each .elf
-$(progs): %.bin: %.list %.elf
-	$(OCP) $*.elf -O binary $*.bin
-
-# how to generate .o's from the .c's.
-%.o: %.c $(DEPS)
+# 7) The rule for building a .o from a .c C file.  The 
+# rule states that every .o will get remade if its 
+# .c (same name), rpi.h, or Makefile changes (is newer
+# then the .o)
+%.o: %.c Makefile rpi.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# how to generate .o's from .S's
-%.o: %.S $(DEPS)
-	$(AS) -c $(ASFLAGS) $< -o $@
+# 8) The rule for building a .o from a .S file. Similar 
+# dependencies.  Note: uppercase .S means the C preprocessor
+# runs first, b/c we use gcc we can use macros in the .S (v handy).
+%.o: %.S Makefile rpi.h
+	$(CC) $(CFLAGS) -c $< -o $@
 
+# 9) "make clean": Delete all generated files (not sources).
 clean:
 	rm -f *.bin *.list *.elf *.o Makefile.bak *~
 
-.PHONY: all clean 
-
-# cheat and just keep all the .o's.
-.PRECIOUS: %.o
+# 10) tell `make` these are fake targets (do not generate a file)
+# to reduce some confusing errors.  (Won't arise today, but easily
+# can in a larger project.)
+.PHONY: all clean

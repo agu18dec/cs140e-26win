@@ -1,28 +1,34 @@
 /*
  * Implement the following routines to set GPIO pins to input or 
  * output, and to read (input) and write (output) them.
- *  - DO NOT USE loads and stores directly: only use GET32 and 
- *    PUT32 to read and write memory.  
- *  - DO USE the minimum number of such calls.
+ *  1. DO NOT USE loads and stores directly: only use GET32 and 
+ *    PUT32 to read and write memory.  See <start.S> for thier
+ *    definitions.
+ *  2. DO USE the minimum number of such calls.
  * (Both of these matter for the next lab.)
  *
- * See rpi.h in this directory for the definitions.
+ * See <rpi.h> in this directory for the definitions.
+ *  - we use <gpio_panic> to try to catch errors.  For lab 2
+ *    it only infinite loops since we don't have <printk>
  */
 #include "rpi.h"
 
-// see broadcomm documents for magic addresses.
+// See broadcomm documents for magic addresses and magic values.
 //
-// if you pass addresses as:
+// If you pass addresses as:
 //  - pointers use put32/get32.
 //  - integers: use PUT32/GET32.
 //  semantics are the same.
 enum {
+    // Max gpio pin number.
+    GPIO_MAX_PIN = 53,
+
     GPIO_BASE = 0x20200000,
     gpio_set0  = (GPIO_BASE + 0x1C),
     gpio_clr0  = (GPIO_BASE + 0x28),
     gpio_lev0  = (GPIO_BASE + 0x34)
 
-    // <you may need other values.>
+    // <you will need other values from BCM2835!>
 };
 
 //
@@ -31,33 +37,38 @@ enum {
 
 // set <pin> to be an output pin.
 //
-// note: fsel0, fsel1, fsel2 are contiguous in memory, so you
-// can (and should) use array calculations!
+// NOTE: fsel0, fsel1, fsel2 are contiguous in memory, so you
+// can (and should) use ptr calculations versus if-statements!
 void gpio_set_output(unsigned pin) {
-    if(pin >= 32 && pin != 47)
-        return;
+    if(pin > GPIO_MAX_PIN)
+        gpio_panic("illegal pin=%d\n", pin);
 
-  // implement this
-  // use <gpio_fsel0>
+  // Implement this.
 }
 
-// set GPIO <pin> on.
+// Set GPIO <pin> = on.
 void gpio_set_on(unsigned pin) {
-    if(pin >= 32 && pin != 47)
-        return;
-  // implement this
-  // use <gpio_set0>
+    if(pin > GPIO_MAX_PIN)
+        gpio_panic("illegal pin=%d\n", pin);
+
+    // Implement this. 
+    // NOTE: 
+    //  - If you want to be slick, you can exploit the fact that 
+    //    SET0/SET1 are contiguous in memory.
 }
 
-// set GPIO <pin> off
+// Set GPIO <pin> = off
 void gpio_set_off(unsigned pin) {
-    if(pin >= 32 && pin != 47)
-        return;
-  // implement this
-  // use <gpio_clr0>
+    if(pin > GPIO_MAX_PIN)
+        gpio_panic("illegal pin=%d\n", pin);
+
+    // Implement this. 
+    // NOTE: 
+    //  - If you want to be slick, you can exploit the fact that 
+    //    CLR0/CLR1 are contiguous in memory.
 }
 
-// set <pin> to <v> (v \in {0,1})
+// Set <pin> to <v> (v \in {0,1})
 void gpio_write(unsigned pin, unsigned v) {
     if(v)
         gpio_set_on(pin);
@@ -69,16 +80,20 @@ void gpio_write(unsigned pin, unsigned v) {
 // Part 2: implement gpio_set_input and gpio_read
 //
 
-// set <pin> to input.
+// set <pin> = input.
 void gpio_set_input(unsigned pin) {
-  // implement.
+    if(pin > GPIO_MAX_PIN)
+        gpio_panic("illegal pin=%d\n", pin);
+
+    // Implement.
 }
 
-// return the value of <pin>
+// Return 1 if <pin> is on, 0 if not.
 int gpio_read(unsigned pin) {
-  unsigned v = 0;
+    unsigned v = 0;
 
-  // implement!
+    if(pin > GPIO_MAX_PIN)
+        gpio_panic("illegal pin=%d\n", pin);
 
-  return v;
+    return v;
 }

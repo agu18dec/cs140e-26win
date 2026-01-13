@@ -16,7 +16,7 @@ _start:
     mov sp, #0x8000000 
     bl notmain
 
-    # if notmain returns: infinite loop
+    @ if notmain returns: infinite loop
 inf_loop: 
     b inf_loop
 
