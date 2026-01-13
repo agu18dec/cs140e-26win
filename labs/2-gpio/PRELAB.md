@@ -29,13 +29,13 @@ over-explain than under-explain; future labs will be more succinct.
 
 ## Reading
 
-1. Read through the [GPIO](../../notes/devices/GPIO.md) and [device memory](./../../notes/devices/DEVICES.md) crash
+1. Read through the [GPIO](../../notes/devices/GPIO.md) and [device memory](../../notes/devices/DEVICES.md) crash
    courses. You should have the [Broadcom
    document](../../docs/BCM2835-ARM-Peripherals.annot.PDF) open so you can go
    through the examples in the crash course
    (`../../docs/BCM2835-ARM-Peripherals.annot.PDF`).
 
-2. After doing so, read through pages 4--7 and 91---96 of the broadcom
+2. After doing so, read through pages 4--7 and 91--96 of the Broadcom
    document to see what memory addresses to read and write to get the GPIO pins
    to do stuff. The specific stuff we want to do: configure a pin as an output
    and turn it on and off, or configure it as an input and read its level.
@@ -44,12 +44,14 @@ over-explain than under-explain; future labs will be more succinct.
    skim what you don't understand and try to pull out what you can. We will
    cover the necessary pieces in class.
 
-3. Look through the `code` directory. You'll be implementing the routines in
+3. Look through *all* files in the `code/` directory, including `start.S`,
+   `memmap`, and `Makefile`. You'll be implementing the routines in
    `gpio.c` which is used by three simple programs: `1-blink.c` `2-blink.c` and
-   `3-input.c`. You only modify `gpio.c`. We provide prototypes (in `rpi.h`)
-   and some trivial assembly routines in `start.S`.
+   `3-loopback.c`. You only modify `gpio.c`. We provide prototypes (in `rpi.h`)
+   and some trivial assembly routines in `start.S`.  You'll then write two
+   additional programs.
 
-4. Note: where the broadcom document uses addresses `0x7E20xxxx`, you'll use
+4. Note: where the Broadcom document uses addresses `0x7E20xxxx`, you'll use
    `0x2020xxxx`. The reason is complicated, but you can find a diagram
    explaining it on page 5 of the manual.
 
