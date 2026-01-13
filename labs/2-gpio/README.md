@@ -35,9 +35,9 @@ This is our first "hello world" example: short, but representative.
 #### Checkoff
 
 No autograder today: demo working tests to TA.  We will check: 
-  - Does: `3-loopback.bin work.
+  - Does: `3-loopback.bin` work.
   - Does your own `5-all.bin` work.
-  - Does your `gpio.c` make sense and exmplify simplicy.
+  - Does your `gpio.c` make sense and exmplify simplicity.
 
 Unfortunately, due to the size of the class this year we won't be able to give
 you debugging help during checkoff if there are others waiting.
@@ -111,8 +111,8 @@ to make permanent.)
 
 1. Connect LED to pin 20 + ground. Both are labeled on the Parthiv-board.
 2. Test: `pi-install staff-binaries/1-blink.bin` → LED should blink
-4. Test: `pi-install staff-binaries/2-blink.bin` → LED and 
-   Parthive on-board LED should blink oppositely.
+3. Test: `pi-install staff-binaries/2-blink.bin` → LED and 
+   Parthiv on-board LED should blink oppositely.
 
 #### Implementation
 
@@ -186,7 +186,7 @@ you can buy on eBay, Adafruit, Sparkfun, Alibaba, etc.
 We'll test input without external devices using a "loopback jumper" 
 (common trick):
 1. **SETUP**: Connect jumper from pin 9 (output) to pin 8 (input).
-2. Code writes to pin 9, reads from pin 10.
+2. Code writes to pin 9, reads from pin 8.
 3. Since we don't have `printf` yet, `3-loopback.bin` makes the system's
    state externally visible by turning LEDs on/off based on what pin
    10 reads.
