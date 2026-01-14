@@ -238,13 +238,59 @@ As the final test:
 Congratulations!  At this point you can check-off.
 
 --------------------------------------------------------------------
-## Extensions
+## Extension: print "hello world" using your GPIO + time.
 
-If you finish early, and get tired of helping other people,
-we encourage you to do the
-[first device extension, sonar](../extensions-device/1-sonar/README.md).
+If you finish early, and get tired of helping other people, a cool
+extension is to use your GPIO code to print "hello world" from your pi
+to your laptop "bit-banging" (manually setting pins high and low at a
+semi-precise rate).
 
-There are additional extensions in [the extensions doc](EXTENSIONS.md).
+The Unix-side bootloader `pi-install` sends and recieves bytes from the
+pi using a 8n1 UART protocol configured at 115,200 baud (115,200 bits
+per second).  It prints any bytes it recieves from the pi.  So if you
+can bit-bang "hello world" correctly, it will print it (and anything
+else you send).
+
+The UART protocol is described in
+[UART](https://en.wikipedia.org/wiki/Universal_asynchronous_receiver-transmitter)
+the protocol to transmit a byte `B` at a baud rate B is pretty simple.
+
+For a given baud rate compute how many micro-seconds `T` you write each bit.  
+ - For example, for 115,200, this is: `(1000*1000)/115200 = 8.68`.  
+ - NOTE: you can use either cycles or micro-seconds.  The former is
+   much easier make accurate.
+ - The A+ runs at `700MHz` so that is 700 * 1000 * 1000 cycles per
+   second or about `6076` cycles per bit.)
+
+To initialize:
+  1. Take over the hardware UART TX pin (GPIO 14 )by setting it as ouput .
+  2. Make sure the TX line has its correct default value.
+
+To transmit:
+  1. write a 0 (start) for T.
+  2. write each bit value in the given byte for T (starting at bit 0,
+     bit 1, ...).
+  3. write a 1 (stop) for at-least T.
+
+```c
+// from ch3 of the arm1176.pdf manual in doc/
+
+// must do init first.
+static inline void cycle_cnt_init(void) {
+    uint32_t in = 1;
+    asm volatile("MCR p15, 0, %0, c15, c12, 0" :: "r"(in));
+}
+
+// read cycle counter: should add a write().
+static inline uint32_t cycle_cnt_read(void) {
+    uint32_t out;
+    asm volatile("MRC p15, 0, %0, c15, c12, 1" : "=r"(out));
+    return out;
+}
+```
+
+There's a bunch of other extensions in [the extensions doc](EXTENSIONS.md).
+
 
 --------------------------------------------------------------------
 ## Additional information
