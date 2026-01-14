@@ -110,7 +110,7 @@ actually operates.
 
 For this extension:
 
-- Read the [240lx lab](https://github.com/dddrrreee/cs240lx-22spr/tree/main/labs/1-dynamic-code-gen)
+- Read the [2025 240LX lab](https://github.com/dddrrreee/cs240lx-25spr/tree/main/labs/2-dynamic-code-gen)
   where we reverse engineered machine encodings by feeding assembly to
   the assembler, getting the resultant machine code, and doing linear
   equation solving.
