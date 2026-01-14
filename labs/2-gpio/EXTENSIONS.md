@@ -2,8 +2,10 @@
 
 ## Extension: Implement `gpio_set_pullup` and `gpio_set_pulldown`
 
-These are described in the [main readme](README.md). This is only an extension
-if you haven't done baremetal Pi stuff before.
+These are described in the [main readme](README.md). This is only an
+extension if you haven't done baremetal Pi stuff before. Key question:
+what clock are they talking about?  Key: figure out how you would validate
+your code works.
 
 ## Extension: Forward one pi signal to another.
 
@@ -22,7 +24,7 @@ some deep topics.
 
 What to do:
 
-1.  Hook up pin 20 from one pi (call this pi-1) to pin 10 of the other
+1.  Hook up pin 20 from one pi (call this pi-1) to pin 8 of the other
     (pi-2).
 
 2.  Plug pi-2 in and run `3-input.bin` input program.
