@@ -6,17 +6,18 @@ We pushed the 5 tests.  Unfortunately you have to make 3 fixes:
 
 Before doing anything:
 
-  1. *Change your `gpio_set_function` so you have exactly the same panic
-     message* as we do.  It has to say `func` not function and use
-     a `%x` and `%d`.  (And make sure you use the same pin panic string
+  1. Change your `gpio_set_function` so you have exactly the same panic
+     message as we do.  (And make sure you use the same pin panic string
      for the rest of gpio.c).  
 
 ```
     void gpio_set_function(unsigned pin, gpio_func_t func) {
         if(pin > GPIO_MAX_PIN)
-            gpio_panic("illegal pin=%d\n", pin);
+            gpio_panic("illegal pin=%d\n", pin);  <-- same as what we gave you
         if((func & 0b111) != func)
-            gpio_panic("illegal func=%x\n", func);
+            // NOTE: it says "func" not "function" and uses "%x" not "%d"
+            gpio_panic("illegal func=%x\n", func); 
+                                
 ```
 
  2.  You'll need to make TWO changes to add them to your `1-fake-pi/tests/Makefile`:
