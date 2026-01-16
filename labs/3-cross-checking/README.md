@@ -81,8 +81,7 @@ Total files: 29
 
 ### Clarifications
 
-
- - You must add additional addresses to `fake-pi.c`.  If you grep in
+ - You must add additional addresses to `fake-pi.c` (CLR1, SET1 and FSEL4).  If you grep in
    your `test/*.out` and see:
 ```
   act-set-output.out:fake-pi.c:GET32:204:PANIC:read of illegal address: 20200010
