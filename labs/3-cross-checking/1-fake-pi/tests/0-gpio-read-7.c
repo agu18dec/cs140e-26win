@@ -2,5 +2,5 @@
 // should be easy to debug!
 #include "rpi.h"
 void notmain(void) {
-    output("about to read 7: %d\n", gpio_read(7));
+    output("TRACE: about to read 7: %d\n", gpio_read(7));
 }
