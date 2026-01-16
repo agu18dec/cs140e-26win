@@ -111,8 +111,9 @@ handle the recursion.**
  - Part 2 checksums:
 
 ```
+
 cksum ./0-gpio-read.bin.out
-4294967295 0 ./0-gpio-read.bin.out
+986810341 35 ./0-gpio-read.bin.out
 cksum ./0-gpio-set-input.bin.out
 3159539606 56 ./0-gpio-set-input.bin.out
 cksum ./0-gpio-set-output.bin.out
