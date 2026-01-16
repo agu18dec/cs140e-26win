@@ -42,8 +42,14 @@ enum {
 void gpio_set_output(unsigned pin) {
     if(pin > GPIO_MAX_PIN)
         gpio_panic("illegal pin=%d\n", pin);
-
-  // Implement this.
+    
+    unsigned offset = pin / 10;
+    unsigned addr = GPIO_BASE + (offset * 4);
+    unsigned val = GET32(addr); // since fsels are contiguous
+    unsigned shift = (pin % 10) * 3;
+    val &= ~(0b111 << shift);   // clear the 3 bits
+    val |=  (0b001 << shift);   // set to output (001)
+    PUT32(addr, val);
 }
 
 // Set GPIO <pin> = on.
@@ -55,6 +61,8 @@ void gpio_set_on(unsigned pin) {
     // NOTE: 
     //  - If you want to be slick, you can exploit the fact that 
     //    SET0/SET1 are contiguous in memory.
+    unsigned offset = pin / 32;
+    PUT32(gpio_set0 + offset * 4, 1 << (pin % 32));
 }
 
 // Set GPIO <pin> = off
@@ -66,6 +74,8 @@ void gpio_set_off(unsigned pin) {
     // NOTE: 
     //  - If you want to be slick, you can exploit the fact that 
     //    CLR0/CLR1 are contiguous in memory.
+    unsigned offset = pin / 32;
+    PUT32(gpio_clr0 + offset * 4, 1 << (pin % 32));
 }
 
 // Set <pin> to <v> (v \in {0,1})
@@ -85,15 +95,26 @@ void gpio_set_input(unsigned pin) {
     if(pin > GPIO_MAX_PIN)
         gpio_panic("illegal pin=%d\n", pin);
 
-    // Implement.
+    unsigned offset = pin / 10;
+    unsigned addr = GPIO_BASE + (offset * 4);
+    unsigned val = GET32(addr); // read
+    unsigned shift = (pin % 10) * 3;
+    val &= ~(0b111 << shift);   // modify
+    //val |=  (0b000 << shift);   // write
+    PUT32(addr, val);
 }
 
 // Return 1 if <pin> is on, 0 if not.
 int gpio_read(unsigned pin) {
-    unsigned v = 0;
 
     if(pin > GPIO_MAX_PIN)
         gpio_panic("illegal pin=%d\n", pin);
+    
+    unsigned offset = pin / 32;
+    unsigned val = GET32(gpio_lev0 + offset * 4);
 
-    return v;
+    if (val & (1 << (pin % 32)))
+        return 1;
+    else
+        return 0;
 }
