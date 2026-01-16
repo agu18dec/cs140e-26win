@@ -1,614 +1,382 @@
-### Lab: automatically cross-check your GPIO code against everyone else's.
+### Lab: grade your own GPIO code by cross-checking
 
-***NOTE: we are modifying this lab: the structure and tasks will be the same,
-but the prose will (hopefull) be clearer***
+**Goal:** Verify your `gpio.c` from Lab 2 is correct by comparing its
+behavior against everyone else's. 
 
-----------------------------------------------------------
-***Errata***:
-***Errata***:
+**Method:** Trace all `PUT32`/`GET32` calls, compute checksums (collision
+resistant hash), compare.
 
-  - `2-trace`: this `Makefile` has issues, so you may need
-    to run `make` in `2-trace` and then inside `2-trace/test`
-    this won't be true for the rest of the quarter.  I forgot
-    to fix a problem from last year.
-    
-  - if your tracing just hangs this is b/c there is an
-    infinite loop from printing: `printk` will call the
-    UART driver, which will then call `put32` and `get32`
-    which you will then call `printk` for etc.  this is
-    a pretty common issue when writing low level monitor
-    code. soln: don't trace when you've called `printk`.
+**Key Insight:** Hard to prove code is correct absolutely. Easy to prove
+it's equivalent to someone else's. If even one person is correct and
+your code matches theirs then you're correct too.
 
-  - Please make sure your class path definition ends with
-    a `/`.  For example:
+**What you'll build:**
 
-        setenv CS140E_2026_PATH /home/engler/class/cs140e-26win/
+1. Run your `gpio.c` in a fake-pi simulator on Unix (no hardware needed)
+  - Automated equivalence checking via checksums
+2. Hardware tracing using linker `--wrap` trick
+  - Automated equivalence checking via checksums
+3. Write more GPIO routines that get checked by (1) and (2).
 
-    Versus
+**Artifacts you'll have at the end:**
 
-        setenv CS140E_2026_PATH /home/engler/class/cs140e-26win
+- A Unix-runnable version of your pi code (huge for debugging)
+- Guarantees your GPIO code actually works
+- A technique you'll use variants of for the rest of the quarter
 
-----------------------------------------------------------
+### Why we do this lab
 
-A goal of this course is that you will write every single line of
-(interesting) low level code you use.  A good result of this approach
-is that you will understand everything and, unlike most embedded or
-operating systems courses, there will not be a lot of opaque, magical
-code that you have no insight into, other than sense of unease that it
-does important stuff beyond your ken.
+**Goal:** You write every line of (interesting) low-level code in
+CS140E. No libraries, no magic. Good: you understand everything. Bad:
+one bug in your code can make your quarter a miserable experience.
+After today's lab you'll be surprised if your code is broken (we will
+be too!).
 
-An obvious potential result of this strategy is that since you are writing
-all code your system depends on, a single bug can make the rest of the
-quarter miserable.
+**Why this matters:**
 
-Today's lab uses simple implementations of several powerful ideas to
-check if your `gpio.c` code from last lab has bugs.
+- **Hardware-level bugs are often Heisenbugs, not Bohr bugs.** They don't
+crash deterministically in the same place each time ("Bohr bugs"). Instead
+they appear non-deterministically with odd effects ("Heisenbugs"). If
+you can't replicate a bug, good luck fixing it.
 
-After completing the lab you will be able to check that your `gpio.c`
-code is effectively equivalent to everyone else's in the class by
-tracing all reads and writes it does and comparing them to everyone
-else's implementation.  If even one person gets it right, then showing
-equivalence means you got it right too.  And, nicely, automatically
-detect if any subsequent modifications you do break the code.
+- **This problem is not theoretical.** We short-cut this lab once (2022)
+with sloppy cross-checking. Result: constant stream of people with
+"weird" multi-hour bugs all quarter. One person finally got hit by a
+Lab 2 bug in Lab 14 (networking). Took several days to find because:
+(1) the bug was non-deterministic, and (2) he was focused on Lab 14 code
+— why would you check Lab 2? It had been "working" all quarter!
 
-The basic intuition: it's very hard to check if two different Turing
-machines are equivalant by comparing their logic.  On the other hand
-it's trivial compare their tapes after they run: same end tape = same
-computed result.
+- **After we went back to stringent checking:** No `gpio.c`
+problems. After today's lab, as long as you don't modify your GPIO code
+without re-checksumming, you won't hit `gpio.c` bugs. If you do: tell us!
+After cross-checking it is *interesting* if you still hit a bug, unlike
+normal methods such as   testing or code inspecting, where
+hitting (yet another) bug surprises no one.
 
-You'll do two things:
-  1. Run your code in a simple fake simulator that you'll modify
-     so that you can trace the memory reads and writes it does to 
-     GPIO memory.  
+**The Core Idea: Cross-Checking via Equivalence**
 
-  2. Using the "wrap" linker trick to trace the code on the raw 
-     hardware.  
+Two approaches to correctness:
 
-----------------------------------------------------------------------
-#### tl;dr: checking code
+**Hard way (constructive):** "Is my code correct?"
+- Need complete specification
+- Handle all corner cases
+- Account for hardware errata
+- Write complex test harness
+- Still misses bugs
 
-Checking your code:
+**Easy way (differential):** "Is my code equivalent to yours?"
+- Run both on same inputs
+- Compare outputs
+- Different outputs → someone is wrong
+- Same outputs → probably both correct
+- If one person is correct, everyone who matches is correct
 
-   1. Your checksums for the tests in `1-fake-pi/tests` match your
-      partner's (and ours).
+**Concrete example:**
 
-      Note this includes implementing `gpio_set_function` and check that it 
-      gives the same checksum. 
+Your `gpio.c` might look completely different from your partner's:
+- Different variable names
+- Different code structure
+- Different control flow
 
-      The easiest checkoff method is edit 
-      `1-fake-pi/tests/Makefile` and uncomment the line:
+But if you both call:
+```
+PUT32(0x20200008, 0b001);  // Set pin=20 output
+PUT32(0x2020001C, 1<<20);  // Turn pin 20 on
+```
+in the same order → functionally equivalent.
 
-            # 6. then do everything.
-            TEST_SRC := $(wildcard ./[0-5]-*.c) ... [more files]
+**The Turing Machine Analogy:**
 
-      and run in the same directory (`1-fake-pi/tests`):
+Hard to analyze two Turing machines by comparing their transition tables.
 
-            % make checkoff
+Easy to check equivalence: run them on the same input, compare tapes. Same tape → same computation.
 
-      This reduces all the output to a single number you can compare
-      at a glance with everyone else.  Note: you'll have to work with
-      everyone to figure out who is wrong when there is a difference.
+Here: compare the "tape" of `PUT32`/`GET32` calls. Same sequence of
+"loads" and "stores" → same behavior.  We can ignore the code.
 
-      This is equivalant to  manually running:
+**What you get:**
 
-            # compute the cksum of your cksums.
-            1-fake-pi/tests % ls ./*.out | sort | xargs cksum | cksum
+- Confidence your code works.
+- Automatic detection when future changes break things.
+- A technique you'll use constantly this quarter (and beyond).
+- (Maybe) Subtle: given that you have a solid safety net you can make
+  tricky changes without stress.  Refactor, extend, speed hacks: Just
+  make sure you get the same checksums!  
 
-   2. `2-trace`: You get the same checksum for all the `.out` files
-      produced by the tests in `2-trace/tests` --- note, there can be a
-      differences in the intial values for GPIO pins when comparing pi
-      zeroes to pi A+s.
-
-   3. When you put in your `gpio.o` into `libpi` you get the same output
-      for (2).
-
-   4. ***NOTE: we're modifying this description.***
-      After everything works, add gpio pullup and gpio pulldown and check
-      with everyone else.  You'll have to add timing routines!
-
-------------------------------------------------------------------------
-#### Checksums.
-
-If you want to use our checksums:
-
-		% cd 1-fake-pi/test
-		% make checkoff
-
-        cksums of all files in (CHKOFF_OUT):
-        950806854 132 ./0-gpio-read-17.out
-        2950566669 132 ./0-gpio-read-20.out
-        950806854 132 ./0-gpio-read-21.out
-        2950566669 132 ./0-gpio-read-7.out
-        197440487 149 ./0-gpio-set-input-17.out
-        2488920004 149 ./0-gpio-set-input-20.out
-        4071544067 149 ./0-gpio-set-input-21.out
-        233099041 149 ./0-gpio-set-input-7.out
-        2970604951 143 ./0-gpio-write-17.out
-        3157623788 145 ./0-gpio-write-21.out
-        2647062284 2139 ./1-gpio-read.out
-        2830168373 5379 ./1-gpio-set-input.out
-        107627159 107 ./1-gpio-set-off.out
-        710888840 107 ./1-gpio-set-on.out
-        53206415 149 ./1-gpio-set-output.out
-        2984310116 2460 ./1-gpio-write.out
-        1190846849 2679 ./2-set-input-N.out
-        1585249846 1262 ./2-set-off-N.out
-        2356184348 1262 ./2-set-on-N.out
-        1674533470 2685 ./2-set-output.out
-        3263639091 634 ./5-gpio-n-set-func.out
-        688829614 149 ./5-gpio-set-func.out
-        2119988811 5381 ./5-set-function-N.out
-        815968718 634 ./5-set-pin-func.out
-        2608020824 149 ./act-set-output.out
-        3166146642 141 ./act-write.out
-        3264505994 1602 ./prog-1-blink.out
-        2701669809 2464 ./prog-2-blink.out
-        1444919731 4598 ./prog-3-input.out
-        total files = 29
-        USE THIS VALUE FOR CHECKOFF:
-        525118589 1049
-        
-There's a bunch of extensions.
+  Example from today: extension where you write fast, inlined GPIO
+  versions that do not have error checking.  We use these alot in
+  240lx/340lx to write timing-critical code: easy 2x with significantly
+  lower jitter.  With cross checking takes less than 10 stress free
+  minutes to do.
 
 ----------------------------------------------------------------------
-#### How to turn in after your local checks pass.
+### TL;DR: Checkoff crash course
 
-On your local machine:
-  - in directory: `1-fake-pi/test` running `make checkoff` should give
-    the checksum: `525118589`.
+**What you'll do (4 steps):**
 
-To checkoff:
-- First make sure you have manually made sure your code works on your computer.
-- Reclone the autograder from here: http://github.com/dghosef/140e-autograder. Or pull and fix the conflict
-- Modify the repo, sunet, and lab variables in `sender.py`. The lab one should be set to 'lab3'
-- Run `sender.py`. The output will be pushed to the checkoff directory of http://github.com/dghosef/140e-autograder
-- Make sure the checksums make sense
- 
-- Let Joe know if something isn't working
+1. Compile and link your `gpio.c` against the `1-fake-pi` simulator on 
+   Unix → logs all PUT32/GET32 calls
+  - Compare checksums with partner and class
+2. Implement `gpio_set_function(pin, func)` (generic pin configuration)
+  - Compare checksums with partner and class
+3. Run same code on real pi with hardware tracing (linker `--wrap` trick)
+  - Compare checksums against checksums from (2).
 
-------------------------------------------------------------------------
-#### Background: Concepts you will learn.
+**Success criteria:**
 
-Today's lab has relatively little code.  However, this code gives
-usefully working examples of several powerful ideas:
+**Part 1 - Fake Pi (Unix):**
+```bash
+% cd 1-fake-pi/tests
+% make checkoff
+```
 
-  1. You will see how to build a trivial, but useful fake-pi "simulator"
-     (`code/fake-pi.c`) that can run your r/pi code on your Unix laptop
-     instead of the r/pi hardware, *without* requiring any modification
-     other than re-compilation.  
-    
-     One nice result of running on your laptop is that it makes it
-     much easier to debug bare-metal r/pi code because you have memory
-     protection (so dereferencing a null or illegal pointer will cause a
-     crash) and a debugger (so you can find such bugs easily).  A second
-     nice feature is the next:
+Success looks like:
+```
+total files = 29
+USE THIS VALUE FOR CHECKOFF:
+525118589 1049
+```
 
-  2. You will also see how to use the fake-pi code to do read-write
-     equivalance checking, a simple, little known trick that lets you
-     easily check your code behaves identically to other people's,
-     even if their code looks very different.
+**Quick debug tip:**
 
-     The end result: with a couple hours of work, you will be
-     very surprised if your code has bugs. You will also be able to
-     immediately detect many cases where a later modification causes
-     different behavior (e.g., if you speed the code up, clean it up, use
-     different compiler options, etc.)   We will use this trick constantly
-     thoughout the quarter.  (And I think all embedded software should
-     be built using some variation of it.)
+Part 1: If checksums differ in (`1-fake-pi/tests`): 
+1. Start with `0-*` tests (single GPIO calls, easiest to debug)
+2. Then `1-*` tests (loops over all pins)
+3. Then `2-*` and `5-*` tests (illegal pins, gpio_set_function)
+4. Finally `prog-*` and `act-*` tests (full programs)
 
-  3. You will also see the power of using cross-checking to detect
-     incorrect code.  Often checking correctness even very-partially
-     takes more code than the actual code being checked. Further,
-     it's generally hard to even get a complete, accurate statement
-     of what correctness for a variety of reasons: specification size,
-     ambiguity, corner cases or outright  specification mistakes.
-     Specfications are not magic, and they have bugs just like code does
-     (and for similar reasons) --- you have already seen an example
-     in the Broadcom document where their description of their own
-     hardware incorrect.
+Compare individual `.out` files with your partner to find where you diverge.
 
-     However, while a constructive expression of correctness is hard, if
-     you have multiple implementations of the same interface, *detecting*
-     incorrectness is often easy: for each input or test you have simply
-     run each different implementation on the same input and check if
-     the output is identical.  If they differ, and the input was legal,
-     then at least one is wrong.
+**Final checkoff value:** `525118589`
 
-     Note that if all implementations agree this does not mean they
-     are correct.  They could all have the same mistake.  But, note,
-     also that in such cases, the other approach of checking against a
-     specification would also likely miss the error (because the same
-     conceptual mistake could easily cause issues with the specification
-     as well).
-
-     But, in general, there is no panacea for correctness --- if the
-     code matters, do everything you can!  One nice thing about easy
-     approaches is you can do a lot more of them.
-
-     If there's one thing you learn in this class, it's hard to
-     do better than routinely checking your code in such a way.
-     Cross-checking appears in many places in computer systems (e.g.,
-     "n-version programming")  and, also outside them.  In a sense, you
-     could argue that cross-checking ("same input = same result?") is
-     a key reason that the natural sciences have seen such a massive
-     increase in effectivess over the past few centuries, where they
-     call it "reproducibility".
-
-----------------------------------------------------------------------
-#### Background: making a fake pi implementation
-
-In order to make testing easy, we want to be able to run your r/pi code
---- unaltered --- on your Unix laptop.  This might seem implausible,
-since the code was written to run on the r/pi.   However, if as you look
-at the code, most of it is C code, which will run the same on the r/pi
-and your laptop --- if-statements will work the same as will addition,
-assignments, return statements, etc.
-
-The main pi-specific stuff from our code in lab 1 is: 
-   1. The assembly code (in `start.S`).  We will be testing the
-      `gpio.c` implementations in isolation, so the assembly is not
-      relevant.    Thus, we can compile `gpio.c` to run on your Unix
-      laptop by simply switching compilers.
-
-  2. The reads and writes to GPIO addresses.  Because we implemented
-      `gpio.c` to never access GPIO addresses directly, but instead only
-      use `GET32` and `PUT32` we can trivially handle reads and writes
-      of GPIO addresses by writing a fake implementation of `PUT32` and
-      `GET32`.  For our purposes today its enough to just implement a fake
-      memory where at eeach `PUT32(a,v)` call we record that `mem[a]
-      = v` and at each `GET32(a)` call, we return `mem[a]` if it exists.
-
-Implementation:
-
-  - To make our `fake-pi.c` code as absolutely simple as possible
-    our initial brain-dead implementation has a set of `enum` identifiers
-    for each tracked address (you will recognize these addresses from
-    `gpio.c`):
-
-            // the locations we track.
-            enum {
-                gpio_fsel0 = (GPIO_BASE + 0x00),
-                gpio_fsel1 = (GPIO_BASE + 0x04),
-                gpio_fsel2 = (GPIO_BASE + 0x08),
-                ...
-
-    Along with a global variable holding the value for each one:
-
-            // the value for each location.
-            static unsigned
-                    gpio_fsel0_v,
-                    gpio_fsel1_v,
-                    gpio_fsel2_v,
-
-  - `PUT32` simply switches on the input address and writes the associated
-    global (if any):
-
-        void PUT32(uint32_t addr, uint32_t v) {
-            ...
-            switch(addr) {
-            case gpio_fsel0: gpio_fsel0_v = v;  break;
-            case gpio_fsel1: gpio_fsel1_v = v;  break;
-            case gpio_fsel2: gpio_fsel2_v = v;  break;
-            case gpio_fsel3: gpio_fsel3_v = v;  break;
-            ...
+If you match this, you're done with Part 1.
 
 
-  - `GET32` switches on the input address and returns the associated
-    value (if any):
+**Part 2 - Hardware Tracing (Real Pi):**
+```bash
+% cd 2-trace/tests
+% make emit
+% make check
+```
 
-        // same but takes <addr> as a uint32_t
-        uint32_t GET32(uint32_t addr) {
-            unsigned v;
-            switch(addr) {
-            case gpio_fsel0: v = gpio_fsel0_v; break;
-            case gpio_fsel1: v = gpio_fsel1_v; break;
-            ...
-            case gpio_lev0:  v = fake_random();  break;
+Success looks like: all tests pass, checksums match your Part 1 checksums.
 
-       Note we treat most GPIO memory as the same as "regular" memory
-       in that every read returns the value of the last write.  However,
-       we treat one address differently --- `gpio_lev0` --- since that is
-       how code reads the value of an input pin.  Input is controlled by
-       the external environment --- if we simply returned the value of
-       the last write we would ignore many possible values.  Instead we
-       return a pseudo-random value each time, since the environment
-       could change.
 
-       Similar in spirit, we could add additional checking to detect
-       if people ever read the `set0` or `clr0` addresses (this caused
-       various bugs in lab 1).  You're welcome to do so!
+**Part 3 - Integration (quick):**
+```bash
+% cd libpi/
+% # Edit Makefile: change SRC = src/gpio.c, comment out `# staff-objs/gpio.o`
+% cd ../2-trace/tests
+% make check
+```
 
-To see how this all works:
+Success looks like: checksums stay the same as Part 2 (your GPIO works correctly).
 
-  1. Look in `1-fake-pi/fake-pi.c` and read the comments.
-     For the extension you will modify `PUT32` and `GET32`, but for now
-     just understand how they work.
+**Many Extensions (check back: updating):**
+- GPIO pullup/pulldown (see PRELAB.md)
+- Array-based memory in fake-pi (instead of globals)
+- Write tests that catch bugs we missed
 
-  2. Before you start, run `make` in `1-fake-pi/` and make sure everything
-     compiles.  Note: the code will use your `gpio.h` and `gpio.c`
-     from lab 1.
+### Staff Checksums (Reference)
 
-  3. You will now have `1-fake-pi/prog-1-blink`, `1-fake-pi/prog-2-blink`,
-     and `1-fake-pi/prog-3-input`
-     --- you can run them and see the `PUT32` and `GET32` calls they
-     perform.
+When you're debugging, you can compare individual test checksums against ours:
 
-  4. An easy way to compare these results to your partner is to compute
-     a "checksum" of them that reduces the arbitrary output to a single
-     integer.  We do so using the standard Unix `cksum` program.
+```bash
+% cd 1-fake-pi/tests
+% make checkoff
+```
 
-  5. If you then look in `1-fake-pi/tests` you will see a more complete set
-     of tests.
+**Our reference output:**
+```
+[Check back: UPDATING]
+[Check back: UPDATING]
+[Check back: UPDATING]
+[Check back: UPDATING]
+...
+total files = 29
+USE THIS VALUE FOR CHECKOFF:
+525118589 1049
+```
 
-The `Makefile` in `1-fake-pi/tests` automates the process, but to understand
-how this works, let's run the `1-blink` from last lab using `fake-pi`:
+**How to use this:**
 
-            % cd labs/3-cross-check/1-fake-pi/tests
-            % make
-            % ./prog-1-blink > prog-1-blink.out
-            % cksum prog-1-blink.out
+You don't need all checksums to match immediately. Work incrementally:
+1. Get `0-*` tests matching first (simplest, single calls)
+2. Then `1-*` tests (loops, systematic)
+3. Then `2-*` tests (illegal inputs)
+4. Then `5-*` tests (gpio_set_function)
+5. Finally `act-*` and `prog-*` tests (full programs)
 
-  1. `./prog-1-blink > prog-1-blink.out`: should run without crashing and,
-     importantly, print out the values for each `PUT32` and `GET32`
-     in the exact order they happened and store them in `1-blink.out`.
-  2. `cksum prog-1-blink.out`: computes and prints the checksum of the stored output.
-     You can compare this to your partner(s).
-  3. If these values match, you know your code worked the same as your partner's.
-  4. Now as you do all the rest, post your results to the newsgroup so everyone can compare.
-  5. If everyone matches, and one person got it right, we've shown that
-       everyone has gotten it right (at least for the values tested).
+If a specific test differs, you can open the `.out` file to see the
+exact sequence of `PUT32`/`GET32` calls:
+```bash
+% cat 1-fake-pi/tests/0-gpio-read-17.out
+```
 
 ----------------------------------------------------------------------
-#### Part 1. Check your code against everyone else 
+### How to Submit (Autograder)
 
-To summarize the above fake-pi description: Given the `GET32` and `PUT32`
-modifications above, a simple, stringent approach is to check that two
-`gpio` implementations are the same:
-
-  1. They read and write the same addresses in the same order with
-     the same values.
-  2. They return the same result.    (For our implementations we
-     did not return any result, so this just means that your code never
-     crashes.)
+***NOTE: updating this***
 
 
-If all checks pass then we know that both implementations are equivalent
-in how they read or write device memory --- at least for the tested inputs.
+----------------------------------------------------------------------
+### 1. Check your code against everyone else (`1-fake-pi`)
 
-You won't write much code for this part, most of the work will be
-comparing different `PUT32`, `GET32` and `DEV_VAL32` traces for the
-tests given in `1-fake-pi/tests` to see what the differences are from.
+To repeat: A simple, stringent approach to check that two `gpio`
+implementations are the same:
+  1. They read and write the same addresses in the same order with the 
+     same values.
+  2. They return the same result.
 
-##### Setup.
+If all checks pass then we know both implementations are equivalent in 
+how they read or write device memory --— at least for the tested inputs.
 
-First things first:
+You won't write much code for this part. Most of the work is
+comparing your `PUT32` and `GET32` traces when running the tests in
+`1-fake-pi/tests` against everyone else to find differences.
 
-  1. In general: you don't want to break working code.  So before making
-     changes `cd` into `1-fake` and copy your gpio.c from
-     last lab:
+##### One-time setup.
 
-            % cd 1-fake
-            % cp ../../2-labs/code/gpio.c .
+**Step 1: Copy your gpio.c**
 
-  2. Change `gpio_read` in `gpio.c` so that on the non-error case, it
-     calls `DEV_VAL32` with its return value and returns that result.
-     This lets us check more stringently.
+Don't break working code. Copy your gpio.c from Lab 2 and
+make sure it compiles:
+```
+% cd 1-fake-pi
+% cp ../../2-gpio/code/gpio.c .
+% make
 
-     So for example:
+**Step 2: Run a single test**
 
+```
+% cd tests
+% make run        # should run a single test
+% make check      # test should pass
 
-            int gpio_read(unsigned pin) {
-                if(pin >= 32)
-                    return -1;
-                ...
-                return x;
-            }
+checking 0-gpio-write-17:
+about to emit a new test output <0-gpio-write-17.test>:
+    ./0-gpio-write-17.fake > ./0-gpio-write-17.test
+about to compare...
+Success!  Matched!
+```
 
-     Becomes
+**Step 3: Read the Makefile**
 
-            int gpio_read(unsigned pin) {
-                if(pin >= 32)
-                    return -1;
-                ...
-                return DEV_VAL32(x);
-            }
-
-
-  3. Make sure you can compile without errors.
-
-            # in 1-fake-pi
-            % make 
-       
-  4. Change into the `tests` subdirectory and run a single test.
-
-            % cd tests
-            # should run a single test
-            % make run
-            # test should pass.
-            % make check
-
-            checking 0-gpio-write-17:
-            about to emit a new test output <0-gpio-write-17.test>:
-                ./0-gpio-write-17.fake > ./0-gpio-write-17.test
-            about to compare...
-            Success!  Matched!
-
-  5. If you look in the `Makefile` in tests it describes how to 
-      run the other tests.  
-
+Look in `tests/Makefile` to see how to run other tests.
 
 ##### Workflow
 
-The tests are organized in increasing difficulty to debug.   
-  - Tests with a `0-` prefix are the easiest (start there) and just contain
-    a single legal call to a `gpio.c` routine.
-  - Tests with a `1-` prefix are a bit harder and systematically run all
-    legal pins less than 32.
-  - Tests with a `2-` and `5-` prefix are more difficult since they test
-    many pins, both
-    legal and illegal.
+**Test organization (easiest to hardest):**
 
-  - Tests with a `prog-` prefix are full program tests (taken from last lab).
-  - Tests with a `act-` prefix are run the act led tests.
+- `0-*` tests: Single legal GPIO call (start here, easiest to debug)
+- `1-*` tests: Loop all legal pins < 32
+- `2-*` and `5-*` tests: Many pins, both legal and illegal
+- `prog-*` tests: Full programs from last lab
+- `act-*` tests: ACT LED tests
 
+Control which tests run by setting `TEST_SRC` in `1-fake-pi/tests/Makefile`:
 
-The `Makefile` in `1-fake-pi/tests` has a set of targets to automate
-the process.
+```make
+TEST_SRC := $(wildcard ./[0]-*.c)    # run 0-* tests
+TEST_SRC := $(wildcard ./[1]-*.c)    # run 1-* tests
+```
 
-  - The files specified by the `TEST_SRC` variable at the top of `1-fake-pi/tests/Makefile` 
-    determine which tests get run.  For example, to run all simple tests:
+Makefile variables: last write wins. You don't need to comment out
+previous writes.
 
-            TEST_SRC := $(wildcard ./[0]-*.c)
+**The Makefile Commands:**
 
-    You could change `[0]` to `[1]` to run the next batch of tests, etc.
-    `Makefile` variables are like regular variables in that the last
-    write wins.  You don't have to comment out previous writes.
+- `make run`: Compile and run tests (checks for crashes)
+- `make emit`: Run tests, saves output to `.out` files (used for
+  regression and cksum)
+- `make check`: Rerun tests, compare to previously emitted `.out` files
+  (use after any `gpio.c` modification)
+- `make cksum`: Run `cksum` on every `.out` file (compare to partners)
+- `make checkoff`: Compute all checksums for final checkoff
 
-  - `make run`: will run all the specified tests.
-  - `make emit`: will run all the specified tests and save the output to a `.out` file.
-     (e.g., running `1-blink` will produce `1-blink.out`).  You can open this file like you
-     would any, but using the `more` or `cat` command is easier / faster.
-  - `make cksum`: will run all the specified tests and reduce their entire output to a single
-     integer using the `cksum` program.  You can quickly determine if you get the
-     same result as your partner(s) by just comparing this integer.
-  - `make checkoff` will compute all the checksums.
-  - `make check` compares to old .out files.
+**Typical workflow:**
 
-You should compare to your partner and work through the tests.
+1. Set `TEST_SRC`: start with easiest tests first (`0-*`)
+2. `make run` to check for crashes
+3. `make emit` to save output
+4. `make cksum` to compare with partner
+5. If different: open individual `.out` files to see where you diverge
+6. Fix your code, `make check` to verify old tests still pass
+7. Move to next test set, repeat
+
+You should compare with your partner and work through the tests.
 
 ##### Making  code behave the same on illegal inputs
 
-The `0-` and `1-` tests  work on legal inputs.  You should get these
-working.  The next set (`2-*.c`) check illegal pin inputs as well.
-If we don't state how to handle them, it's easy to get different results.
+The `0-` and `1-` tests work on legal inputs. The `2-*.c` tests check 
+illegal pin inputs.
 
-To keep things simple, you should check if a pin is larger than 32
-and, for `void` routines, simply check and return at the start of 
-the routine:
 
-        // 47 is the internal led pin
-        if(pin >= 32 && pin != 47)
-            return;
+**Why this matters for equivalence:** Illegal inputs often have no
+defined result. Different implementations could reasonably do different
+things. To make equivalence checking work, all your GPIO routines should
+immediately panic if an input pin is greater than 53 (`GPIO_MAX_PIN`):
+```c
+    if(pin > GPIO_MAX_PIN)
+        gpio_panic("illegal pin=%d\n", pin);
+```
 
-(So: At the start of `gpio_set_on`, `gpio_set_off`, `gpio_set_input`,
-`gpio_set_output`.)
-
-And for non-void, such as `gpio_read`, check and return `-1`:
-
-        // 47 is the internal led pin
-        if(pin >= 32 && pin != 47)
-            return -1;
-
-We would normally print and error and crash, but at the moment we don't
-even have `printk` so simply return.
-
-Note: no matter what, we definitely need to check for illegal pins
-since they are being used to compute an address that we read and write
-to (i.e., they determine the value passed to `GET32` and `PUT32`).
-Since we are running without memory protecton, such invalid accesses
-are extremely bad since they can silently corrupt data we use or issue
-weird hardware commands.
-
-##### Workflow
-
-In general, when you work on tests:
-
-  - `make run`: will compile and run the tests.  This is good
-    to check for a crash.
-
-  - `make emit` will emit a `.out` file for each configured
-     test.  This is the output we run `cksum` on later, and 
-     is also the used for regression testing.
-  - `make check` will rerun tests and compare there output to 
-    previously emitted .outs.  You want to do this after any
-    modification to `gpio.c` so that you can make sure old
-    functionality doesn't change.
-
-  - `make cksum` will run `cksum` on every `.out` so that
-    you can easily compare to other people.
-
+**Why this matters for safety:** Checking illegal pins is not a priggish
+"nice have" --- it's a hard "don't die" requirement. Fed an illegal pin
+your GPIO code will compute an unexpected address, which it then nukes
+with invalid loads and stores.  Possible results: corrupting data, code
+(we have no memory protection yet!) or device configs; destroying device
+FIFOs and their data, etc.
 
 ----------------------------------------------------------------------
-#### Step 2: implement `gpio_set_function` and cross-check it 
+#### Step 2: implement `gpio_set_function` and cross-check it
 
-As you've probably discovered, debugging without even `printf` is a
-hassle.  Before we do a bunch of devices in later labs, let's implement
-the `GPIO` code `printf` working so that it's a bit easier.
+Debugging without even `printk` is a hassle.  So we'll fix that now.
 
- - For historical reasons we call our kernel's `printf` "`printk`" both
-   because it's running at privileged level (and so errors can crash
-   the machine versus an application segmentation fault) and because
-   our implementation isn't quite `printf`.
+**What to implement:**
 
-This is the one step where you write some code.  But it's mainly just
-adapting the GPIO code you already implemented.
+```c
+// set GPIO function for <pin> (input, output, alt...).
+// settings for other pins should be unchanged.
+void gpio_set_function(unsigned pin, gpio_func_t function);
+```
 
-The header `$CS140E_2025_PATH/libpi/include/gpio.h` in today's 
-lab gives the definition:
+This is a more generic version of your `gpio_set_output` and
+`gpio_set_input`. It takes an `enum` constant (see `gpio.h`) telling it
+how to configure the pin (see the Broadcom document for their definitions).
 
-    // set GPIO function for <pin> (input, output, alt...).  
-    // settings for other pins should be unchanged.
-    void gpio_set_function(unsigned pin, gpio_func_t function);
+**Implementation:**
 
-This is just a more generic version of your `gpio_set_output` and
-`gpio_set_input`.    It takes an `enum` constant telling it how to
-configure the pin (the Broadcom document pages you used for the last
-lab tell you what they mean).
+  1. Only modify your `gpio.c` you copied from Lab 2 to `1-fake-pi`.
+  2. Adapt your `gpio_set_output` code to bitwise-or the given flag.
+  3. Error check both the input `pin` and the `function` value.
 
-What to do:
+**Checkoff:**
 
-  0. Do all edits to your `gpio.c` you copied from lab 1 to `1-fake-pi`
-  1. Adapt your `gpio_set_output` code to bitwise-or the given flag.
-  2. Error check not just the input `pin` but also the `function` 
-      value.
+  1. Make sure the `5-tests*.c` are equivalent to other people
+  2. **Afer** doing (1): then rewrite your `gpio_set_input` and
+     `gpio_set_output` to call `gpio_set_function` and verify you get the
+     same checksums (see a pattern?)
+  3. Check that `printk` now works: `cd 00-hello`, run `make`, verify
+     `hello.bin` runs successfully
 
-Checkoff:
-   1. Make sure the `5-tests*.c` are equivalant to other people.
-   2. Rewrite your `gpio_set_input` and `gpio_set_output` to call 
-      `gpio_set_function` and then verify you get the same checksums.
-      (See a pattern?)
+If step 3 works, congratulations — it's using your `gpio.c`.
 
-   3. Checking that `printk` now works for real; if you go into
-      `3-cross-check/check-hello` and type `make` it produce a `hello.bin`
-      that it can run successfully.
-      If so, congratulations!  It is using your `gpio.c`
+**Why printk now works:** The UART code (used by `printk`) needs to
+configure GPIO pins using alternate functions. Your `gpio_set_function`
+provides this.
 
--------------------------------------------------------------------
-#### Step 3: implement the act led (pin 47).
+**Why printk**: Like many other kernels, we call our `printf` "`printk`"
+because it's privileged (and so errors can crash the machine) and,
+related, because its implementation is missing most of `printf`'s
+functionality.
 
-The pi has an led on its board (the "act" led) that you can control 
-by writing GPIO pin 47.
-
-For `gpio.c`:
-  - extend `gpio.c:gpio_set_func` to handle 47.
-  - extend `gpio.c:gpio_set_on` and `gpio.c:gpio_set_off`
-  - `gpio_read` should still give an error for any pin greater than 32.
-
-For `fake-pi.c`:
-  - You will have to extend `fake-pi.c` to have additional clear
-    (`gpio_clr1`), set (`gpio_set1`) and function select location
-    (`gpio_fsel4`).
-
-  - extend `fake-pi.c:GET32`: to handle reads of the new function select location.
-  - extend `fake-pi.c:PUT32`: to handle writes to the new clear and set locations.
-  - do not add calls to initialize the new variables in `notmain` using
-    random!  It will throw off the values.  You'll notice `gpio_fsel4_v` is
-    set to `~0`.
-
-For testing:
-  - Enable the act tests:
-
-        # 1-fake-pi/tests/Makefile
-        TEST_SRC := $(wildcard ./act-*.c) 
-
-----------------------------------------------------------------------
-----------------------------------------------------------------------
 ## Final checkoff for part 1.
 
 Now that you're done, for checkoff:
 
-  1. As described at the start of the README, 
-     in `1-fake-pi/test/Makefile`  uncomment the line:
+  1. As described at the start of the README,
+     in `1-fake-pi/tests/Makefile`  uncomment the line:
 
 
             # 6. then do everything.
@@ -621,125 +389,125 @@ Now that you're done, for checkoff:
      checksum should be `525118589`.
 
 
-
-
-----------------------------------------------------------------------
-#### Part 2: Do similar tracing on the pi (`2-trace`)
+#### Part 2: Do similar tracing on the pi (`2-trace/`)
 
 ***Note: for the `prog-hardware-loopback.c` you'll need to run a jumper
-between pins 9 and 10 (it sets and reads).***
+between pins 8 and 9 (it sets and reads).***  
 
-This uses the tracing trick from the `PRELAB`.  You should look at that
-implementation if you haven't already.
+Part 2 uses the tracing trick from the `PRELAB`.  You should look at
+that implementation in `01-tracing-pi/` if you haven't already.
 
-Implement the code in `2-trace`:
+**What to implement in the `2-trace/` directory:**
 
   - `trace-simple.c`: implement `__wrap_PUT32` and `__wrap_GET32`
-  - `trace-notmainc.c: if you want to get fancy implement this
-    so you can run raw pi programs in tracing mode.
-  - extend `tests/Makefile` to also handle get32 and put32.  You
-    should just change your trace library to call the wrappers for
-    `PUT32` and `GET32`.
+  - `trace-notmain.c`: if you want to get fancy, implement this so you can run raw pi programs in tracing mode
+  - `tests/Makefile`: extend to handle `get32` and `put32` (just change your trace library to call the wrappers)
 
-As with `1-fake-pi` start working through the tests in `2-trace/tests`.
+As with `1-fake-pi`, start working through the tests in `2-trace/tests`.
 
-###### checkoff
+##### Checkoff
 
-Note, that initially you will be using our `gpio` implementation in
-`libpi`.  When you finish the tracing above do, emit the `out` files
-and then drop in your gpio and make sure you get the same answer.
+Initially you'll be using our `gpio` implementation in `libpi`. When
+you finish the tracing above, emit the `out` files and then drop in your
+gpio and make sure you get the same answer.
 
-   1. `make emit`.
-   2. `make check` to make sure it passes (this compares the current run to 
-       the output files emitted in (1)).
-   3. Change `libpi/Makefile` to use your `gpio.c` instead of ours by changing
-      `SRC = src/gpio.c` and removing the `staff-objs/gpio.o` from `STAFF_OBJS`.
-       These steps are described in the `libpi/Makefile` comments.
+**Steps:**
 
-       ***To make debugging easy: before doing anything else, check that
-      running `make` in `3-cross-check/check-libpi` doesn't break: for
-      `hello-bin.bin` should print "hello" and `act-blink.bin` should
-      blink the small green led on the pi itself.***
+Before changing anything:
+   1. Verify `make` in the test directory
+      works. `hello-bin.bin` should print "hello" and `act-blink.bin`
+      should blink the small green led on the pi itself.
 
-   4. Now verify tracing gives the same values: `make check`: you should get the same results.
+   2. `make emit` to emit all the `*.out` files recording the reference
+      PUT32 and GET32 calls.
+
+   3. `make check` to sanity check that the unchanged code produces
+      the same output files as those emitted in step 1 above.  (This detects
+      non-determinism or broken checking code).
+
+Now test your code works when used as the default:
+
+   1. Swap your `gpio.c` into `libpi/` by changing the `libpi/Makefile` to 
+      use your `gpio.c` instead of ours:
+      - Add: `SRC = src/gpio.c`
+      - Remove `staff-objs/gpio.o` from `STAFF_OBJS` by commenting it out.
+      - These steps are described in the `libpi/Makefile` comments
+
+   2. `make check`: after swapping, verify tracing gives the same values.
 
 ----------------------------------------------------------------------
 #### Extension: simulator validation
 
-Modify the `fake-pi.c` implementation to set memory to the actual values
-on the pi when called with `-initial`.  You should then check that you
-get the same results when run on the same program.  Note: you will have
+Modify the `fake-pi.c` implementation to set memory to the actual values 
+on the pi when called with `--initial`. You should then check that you
+get the same results when run on the same program. Note: you will have
 to do something about the tracing start/stop calls.
 
-----------------------------------------------------------------------
-#### Extension: Implement a better version of memory that uses an array.
-
-Our crude memory in `fake-pi.c` is relatively simple to understand, but
-very rigid since it uses a global variable for each address.  Make a copy
-of code (`cp -r code code-new`) and reimplement memory using an array.
-When you rerun all the tests nothing should change.
 
 ----------------------------------------------------------------------
-#### Extension: write other tests.
+#### Extension: Implement a better version of memory that uses an array
 
-We'll give an extension credit if you can write a test you that detects
+Our crude memory in `fake-pi.c` is relatively simple to understand,
+but very rigid since it uses a global variable for each device memory
+address. Make a copy of code so you don't break your working version
+(`cp -r code code-new`) and reimplement memory using an array. When you
+rerun all the tests (`make check`) nothing should change.
+
+----------------------------------------------------------------------
+#### Extension: write other tests
+
+We'll give an extension credit if you can write a test that detects
 a new difference that the provided tests miss.
 
 -------------------------------------------------------------------------
-#### Addendum: the power of fake execution + equivalance.
+#### Post-script: the power of fake execution + equivalence
 
-It doesn't look like much but you've implemented a fancy approach to
+It doesn't look like much but you've implemented a fancy approach to 
 correctness that is --- hard to believe --- much beyond what almost
-anyone does.     There are two pieces to what you've done:
+anyone does. There are two pieces to what you've done:
 
-   1. Taking low-level code made to manipulate hardware directly and
-      running it without modification in a fake environment.   This
-      approach to lying (more politely called "virtualization") is
-      powerful and useful in many domains.  In an extreme case you have
-      virtual machines, such as VMware, which can take entire operating
-      systems designed to run in god-mode on raw hardware (such as your
-      laptop) and instead run them as user-processes that deal with fake
-      hardware without them realizing it.
+    1. **Taking low-level code and running it in a fake environment.**
+    You took code made to manipulate hardware directly and ran it
+    without modification in a fake environment. This approach to lying
+    (more politely called "virtualization") is powerful and useful in
+    many domains. In an extreme case you have virtual machines, such as
+    VMware, which can take entire operating systems designed to run in
+    god-mode on raw hardware (such as your laptop) and instead run them as
+    user-processes that deal with fake hardware without them realizing it.
 
-   2. Showing code equivalance not by comparing the code itself (which
-      is hard when code differs even trivially, much less dramatically)
-      but instead by checking that it does equivalant reads and writes.
-      Checking memory-access equivalance gives us a simple, powerful
-      method to mechanically check code correctness.    In our case, it
-      lets us show that you are equivalant to everyone else by comparing
-      a single 64-bit number.  Even better: if even one impementation
-      is correct, we have trivially shown they all are --- at least on
-      the runs we have done --- no matter how weirdly you wrote the code.
 
-Showing exact equivalance of a specific run is easy.   (A `strcmp` of the
-output is sufficient.)   It does have a couple of challenges.
+    2. **Showing code equivalence via memory traces.** You checked
+    equivalence not by comparing the code itself (which is hard when
+    code differs even trivially, much less dramatically) but instead
+    by checking that it does equivalent reads and writes. Checking
+    memory-access equivalence gives us a simple, powerful method to
+    mechanically check code correctness. In our case, it lets us show
+    that you are equivalent to everyone else by comparing a single 32-bit
+    number. Even better: if even one implementation is correct, we have
+    trivially shown they all are -- at least on the runs we have done ---
+    no matter how weirdly you wrote the code.  Or even in what language!
+    Several people are doing rust versions, and a couple of maniacs are
+    doing zig: your hashes cross-check just as well against their code
+    as against a C implementation.
 
-   1. It only shows equvalance on the inputs we have tested.  It cannot
-      show that there is not some other input that causes a non-equivalant
-      execution.  We *can* signficantly extend this by checking the code
-      symbolically (essentially running it on constraints expressing
-      all possible values on a path vs just running it on a single set
-      of concrete values), but this is beyond the scope of the course.
-      My student David Ramos has two great papers on this appraoch.
+Showing *exact* equivalence of a specific run is easy:  a `strcmp` of the
+output is sufficient.   It does have a couple of challenges.
 
-   2. It will semantically equivalant runs that have superficial
-      differences.  For example, consider code where one implementation
-      first sets GPIO pin 19 to an output pin, and then pin 20 while
-      another does the reverse.  Intuitively these are the same, since
-      it does not matter which order you set these pins, but since these
-      reads and writes will be in different orders we will reject these.
-      The problem with resolving this false rejection is that we need
-      to know more semantics of what we are checking.   While encoding
-      such semantics in this exact case isn't hard, doing so in general
-      is not always easy.  And it always requires some more code (and,
-      of course, this code can be wrong).  There is an art to flexibly
-      specifying such differences which, unfortunately, we lack the time
-      to get into.  One easy (but a bit imperfect) hack in our domain
-      is to consider reads and writes to different r/pi devices to be
-      independent (this is not always true) or multiple reads or writes
-      of the same location to be equivalant to a single read or write
-      (again, not always true).
+   1. **Limited test coverage.** It only shows equivalence on the
+   inputs we have tested. It cannot show that there is not some other
+   input that causes a non-equivalent execution. We *can* significantly
+   extend this by checking the code symbolically (essentially running
+   it on constraints expressing all possible values on a path vs just
+   running it on a single set of concrete values), but this is beyond
+   the scope of the course. A bunch of my former students had a bunch
+   of great papers on this approach if interested.
 
-      In the interest of simple and fast we will insist on exact
-      equivalance, but you are more than welcome to do something more
-      fancy and we'll try to factor that into your grade.
+   2. **False rejections from reordering.**  Our current exact-match
+   approach will reject semantically equivalent runs that have superficial
+   differences. For example, consider code where one implementation first
+   sets GPIO pin 19 to an output pin, and then pin 20 while another does
+   the reverse. Intuitively these are the same, since it does not matter
+   which order you set these pins, but since these reads and writes will
+   be in different orders we will reject these.  You should be able to
+   see how to extend to handle this --- and you can certainly do so as
+   an extension!
