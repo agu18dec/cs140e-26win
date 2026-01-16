@@ -6,9 +6,11 @@ We pushed the 5 tests.  Unfortunately you have to make 3 fixes:
 
 Before doing anything:
 
-  1. Change your `gpio_set_function` so you have exactly the same panic as we do:
-     (And make sure you use the same pin panic string for the rest of gpio.c):
-   
+  1. *Change your `gpio_set_function` so you have exactly the same panic
+     message* as we do.  It has to say `func` not function and use
+     a `%x` and `%d`.  (And make sure you use the same pin panic string
+     for the rest of gpio.c).  
+
 ```
     void gpio_set_function(unsigned pin, gpio_func_t func) {
         if(pin > GPIO_MAX_PIN)
