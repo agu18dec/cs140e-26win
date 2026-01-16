@@ -1,5 +1,6 @@
 
-### Errata
+### Errata Part 1
+
 
 We pushed the 5 tests.  Unfortunately you have to make 3 fixes:
 
@@ -79,6 +80,25 @@ Total files: 29
 1969050300 1050
 
 ```
+
+### Errata Part 2
+
+**The description is wrong: When you first run, it will hang until you
+handle the recursion.**
+
+  - `printk` uses GPIO and hence, calls `PUT32` and `GET32`. Thus,
+    to prevent an infinite loop while tracing, before calling `printk`
+    your system should set a variable that lets it know it should skip
+    any subsequent calls.  When the `printk` is done, you would reset
+    the variable.
+
+  - If you want to trace `printk` you would have to add a buffering
+    mode, where instead of immediately printing all `PUT` and `GET`
+    calls during tracing you would instead add them to a sequential list
+    (a "log").  When `trace_stop()` is called, you would iterate over
+    this list, printing it.
+
+
 
 ### Clarifications
 
@@ -541,12 +561,19 @@ Now that you're done, for checkoff:
 ---------------------------------------------------------------
 #### Part 2: Do similar tracing on the pi (`2-trace/`)
 
-***IF YOU SEE THIS DO A git pull***
-***IF YOU SEE THIS DO A git pull***
-***IF YOU SEE THIS DO A git pull***
-***IF YOU SEE THIS DO A git pull***
-***IF YOU SEE THIS DO A git pull***
-***IF YOU SEE THIS DO A git pull***
+
+**NOTE**:
+  - `printk` uses GPIO and hence, calls `PUT32` and `GET32`. Thus,
+    to prevent an infinite loop while tracing, before calling `printk`
+    your system should set a variable that lets it know it should skip
+    any subsequent calls.  When the `printk` is done, you would reset
+    the variable.
+
+  - If you want to trace `printk` you would have to add a buffering
+    mode, where instead of immediately printing all `PUT` and `GET`
+    calls during tracing you would instead add them to a sequential list
+    (a "log").  When `trace_stop()` is called, you would iterate over
+    this list, printing it.
 
 
 
