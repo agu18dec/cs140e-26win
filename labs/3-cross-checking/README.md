@@ -1,6 +1,27 @@
 ### Clarifications
 
 NOTE: 
+  - We pushed the 5 tests.  Before doing anything:
+
+
+    You'll need to make TWO changes to add them to your `1-fake-pi/tests/Makefile`:
+
+```
+        TEST_SRC += $(wildcard ./[2]-*.c)
+        TEST_SRC += $(wildcard ./[5]-*.c)    # <--- add this
+        TEST_SRC += $(wildcard ./act-*.c)
+        TEST_SRC += $(wildcard ./prog-*.c)
+
+        # Checkoff uses all tests
+        CHKOFF_SRC := $(wildcard ./[0125]-*.c) $(wildcard ./prog-*.c) $(wildcard ./act-*.c)
+        #                              ^
+        #                              |
+        #                              |
+        # add the 5 to check checkoff source
+```
+
+
+
  - You must add additional addresses to `fake-pi.c`.  If you grep in
    your `test/*.out` and see:
 ```
