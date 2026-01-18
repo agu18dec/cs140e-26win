@@ -24,6 +24,11 @@ unsigned __wrap_GET32(unsigned addr);
 unsigned __real_GET32(unsigned addr);
 void __wrap_PUT32(unsigned addr, unsigned val);
 void __real_PUT32(unsigned addr, unsigned val);
+uint32_t __wrap_get32(const volatile void *addr);
+uint32_t __real_get32(const volatile void *addr);
+void __wrap_put32(volatile void *addr, uint32_t val);
+void __real_put32(volatile void *addr, uint32_t val);
+
 
 // simple state machine to track what set of options we're called with.
 enum {
@@ -66,13 +71,30 @@ static void emit_get32(uint32_t addr, uint32_t val) {
 // the linker will change all calls to GET32 to call __wrap_GET32
 void __wrap_PUT32(unsigned addr, unsigned val) {
     // XXX: implement this function!
-    unimplemented();
+    __real_PUT32(addr, val);
+    if(state == TRACE_ON)
+        emit_put32(addr, val);
 }
 
 // the linker will change all calls to GET32 to call __wrap_GET32
 unsigned __wrap_GET32(unsigned addr) {
     unsigned v = 0;
     // implement this function!
-    unimplemented();
+    v = __real_GET32(addr);
+    if(state == TRACE_ON)
+        emit_get32(addr, v);
+    return v;
+}
+
+void __wrap_put32(volatile void *addr, uint32_t val) {
+    __real_put32(addr, val);
+    if(state == TRACE_ON)
+        emit_put32((uint32_t)(unsigned long)addr, val);
+}
+
+uint32_t __wrap_get32(const volatile void *addr) {
+    uint32_t v = __real_get32(addr);
+    if(state == TRACE_ON)
+        emit_get32((uint32_t)(unsigned long)addr, v);
     return v;
 }
