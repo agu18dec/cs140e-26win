@@ -21,7 +21,7 @@ TEST_SRC = 0-gpio-read.c
 TEST_SRC := $(wildcard ./0-*.c)
 
 # the trace flags --- if you override notmain, would need to add it.
-WRAP = --wrap=PUT32 --wrap=GET32
+WRAP = --wrap=PUT32 --wrap=GET32 --wrap=put32 --wrap=get32
 
 # shut up make
 MAKEFLAGS += --no-print-directory

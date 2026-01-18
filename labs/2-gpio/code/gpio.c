@@ -40,16 +40,17 @@ enum {
 // NOTE: fsel0, fsel1, fsel2 are contiguous in memory, so you
 // can (and should) use ptr calculations versus if-statements!
 void gpio_set_output(unsigned pin) {
-    if(pin > GPIO_MAX_PIN)
-        gpio_panic("illegal pin=%d\n", pin);
+    // if(pin > GPIO_MAX_PIN)
+    //     gpio_panic("illegal pin=%d\n", pin);
     
-    unsigned offset = pin / 10;
-    unsigned addr = GPIO_BASE + (offset * 4);
-    unsigned val = GET32(addr); // since fsels are contiguous
-    unsigned shift = (pin % 10) * 3;
-    val &= ~(0b111 << shift);   // clear the 3 bits
-    val |=  (0b001 << shift);   // set to output (001)
-    PUT32(addr, val);
+    // unsigned offset = pin / 10;
+    // unsigned addr = GPIO_BASE + (offset * 4);
+    // unsigned val = GET32(addr); // since fsels are contiguous
+    // unsigned shift = (pin % 10) * 3;
+    // val &= ~(0b111 << shift);   // clear the 3 bits
+    // val |=  (0b001 << shift);   // set to output (001)
+    // PUT32(addr, val);
+    gpio_set_function(pin, GPIO_FUNC_OUTPUT);
 }
 
 // Set GPIO <pin> = on.
@@ -117,4 +118,19 @@ int gpio_read(unsigned pin) {
         return 1;
     else
         return 0;
+}
+
+void gpio_set_function(unsigned pin, gpio_func_t func) {
+    if(pin > GPIO_MAX_PIN)
+        gpio_panic("illegal pin=%d\n", pin);
+    if((func & 0b111) != func)
+        gpio_panic("illegal func=%x\n", func);
+
+    unsigned offset = pin / 10;
+    unsigned addr = GPIO_BASE + (offset * 4);
+    unsigned val = GET32(addr);
+    unsigned shift = (pin % 10) * 3;
+    val &= ~(0b111 << shift); 
+    val |= (func << shift); 
+    PUT32(addr, val);
 }
