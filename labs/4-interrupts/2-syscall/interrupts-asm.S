@@ -37,6 +37,22 @@ _data_abort_asm:              .word data_abort_asm
 _interrupt_asm:               .word interrupt_asm
 _interrupt_table_end:   @ end of the table.
 
+.globl _int_table_user
+.globl _int_table_user_end
+_int_table_user:
+  @ Q: why can we copy these ldr jumps and have
+  @ them work the same?
+  ldr pc, _reset_asm
+  ldr pc, _undefined_instruction_asm
+  ldr pc, _software_interrupt_asm_user
+  ldr pc, _prefetch_abort_asm
+  ldr pc, _data_abort_asm
+  ldr pc, _reset_asm
+  ldr pc, _interrupt_asm
+
+_software_interrupt_asm_user:  .word software_interrupt_asm_user
+_int_table_user_end:   @ end of the table.
+
 @ only handler that should run since we 
 @ only enable general interrupts
 interrupt_asm:
@@ -87,7 +103,19 @@ software_interrupt_asm:
     @   6 restore regs: must be identical to what got pushed 
     @     at step (1)
     @   - return from the exception (look at interrupt_asm)
-    asm_not_implemented()
+    push  {r1-r12,lr}   
+    mov   r1, r0
+    sub   r0, lr, #4
+    bl syscall_vector 
+    pop {r1-r12,lr}   
+    movs pc, lr
+
+software_interrupt_asm_user:
+    push  {r1-r12,lr}   
+    mov   r1, r0
+    sub   r0, lr, #4
+    bl syscall_vector 
+    pop {r1-r12,lr}   
     movs pc, lr
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@

@@ -36,16 +36,21 @@ static volatile unsigned *hist = 0;
 // - allocate <hist> with <kmalloc> using <pc_min> and
 //   <pc_max> to compute code size.
 static unsigned gprof_init(void) {
-    todo("allocate <hist> using <kmalloc>.  initialize etc\n");
+    pc_min = (unsigned)__code_start__;
+    pc_max = (unsigned)__code_end__;
+    unsigned code_size = pc_max - pc_min;
+    hist_n = code_size / 4; // each instruction is 4 bytes so divide by 4 to get num_instructions
+    hist = kmalloc(hist_n * sizeof(unsigned));    
     return hist_n;
 }
 
 // increment histogram associated w/ pc.
 //    few lines of code
 static void gprof_inc(unsigned pc) {
-    assert(pc >= pc_min && pc <= pc_max);
-    todo("make sure you bounds check\n");
-    unimplemented();
+    if(pc < pc_min || pc > pc_max)
+        return;
+    unsigned idx = (pc - pc_min) / 4;
+    hist[idx]++;
 }
 
 // print out all samples whose count > min_val
@@ -58,7 +63,14 @@ static void gprof_inc(unsigned pc) {
 //  - we expect pc's to be in GET32, PUT32, different
 //    uart routines, or rpi_wait.  (why?)
 static void gprof_dump(unsigned min_val) {
-    todo("make sure you don't trace this routine!\n");
+    printk(" gprof dump (min_val=%d) \n`", min_val);
+    for(unsigned i = 0; i < hist_n; i++) {
+        if(hist[i] > min_val) {
+            unsigned pc = pc_min + i * 4;
+            printk("  pc=%x, count=%d\n", pc, hist[i]);
+        }
+    }
+    printk(" end dump \n");
 }
 
 /**************************************************************
