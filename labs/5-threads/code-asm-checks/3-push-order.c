@@ -18,17 +18,17 @@ void notmain() {
     uint32_t v[4] = { 1, 2, 3, 4 };
 
     uint32_t *res = push_two(&v[2], val1, val2);
-    assert(res == &v[0]);
+    assert(res == &v[0]); // pushing 2 values down, so should be at v[0]
 
     // note this also shows you the order of writes.
-    if(v[2] == val2 && v[1] == val1) {
+    if(v[1] == val1 && v[0] == val2) {
         assert(v[3] == 4);
         assert(v[0] == 1);
-        todo("what does this imply?\n");
+        trace("r1 was written before r2\n"); // r1 which has val1 goes to v1
     } else if(v[1] == val2 && v[0] == val1) {
         assert(v[3] == 4);
         assert(v[2] == 3);
-        todo("what does this imply?\n");
+        trace("r2 was written before r1\n"); // r2 which has val2 goes to v1
     } else 
         panic("unexpected result\n");
 }

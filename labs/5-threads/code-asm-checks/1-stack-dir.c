@@ -11,8 +11,21 @@
 //     stack pointer and compare.
 #include "rpi.h"
 
-int stack_grows_down(void) {
-    todo("implement this routine\n");
+static volatile uintptr_t last_helper_addr;
+
+static void helper(void) {
+    volatile unsigned x = 0;
+    last_helper_addr = (uintptr_t)&x;
+}
+
+static int stack_grows_down(void) {
+    volatile unsigned a = 0;
+    uintptr_t a_addr = (uintptr_t)&a;
+
+    helper();
+    uintptr_t x_addr = last_helper_addr;
+
+    return x_addr < a_addr;
 }
 
 void notmain(void) {

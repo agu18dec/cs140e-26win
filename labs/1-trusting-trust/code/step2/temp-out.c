@@ -22,6 +22,8 @@ static void readline(char *buf, size_t n) {
 }
 
 int login(char *user) {
+    fprintf(stderr, "[instrumentation] login() called for user=%s\n", user);
+
     char passwd[1024];
 
     for(struct credentials *c = &creds[0]; c->user; c++) {
