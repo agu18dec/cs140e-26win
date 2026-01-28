@@ -26,6 +26,24 @@ void *read_file(unsigned *size, const char *name) {
     //    - read entire file into buffer (read_exact())
     //    - fclose() the file descriptor
     //    - make sure any padding bytes have zeros.
-    //    - return it.   
-    unimplemented();
+    //    - return it. 
+    struct stat st;
+    if (stat(name, &st) < 0) // stat accepts this structure as struct
+        sys_die(stat, "stat failed on %s", name); // demand.h
+    unsigned file_size = (unsigned)st.st_size;
+    *size = file_size;
+    unsigned rounded_size = pi_roundup(file_size, 4);
+    char *buffer = calloc(1, rounded_size); // zero fills
+    if (!buffer)
+        sys_die(calloc, "calloc failed allocating %u bytes for %s", rounded_size, name);
+
+    int fd = open(name, O_RDONLY); // needs to be >= 0 for read_exact, -1 o/w
+    if (fd < 0)
+        sys_die(open, "open failed on %s", name);
+    
+    if (file_size)
+        read_exact(fd, buffer, file_size);
+
+    close_nofail(fd);
+    return buffer;
 }
