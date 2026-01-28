@@ -5,7 +5,7 @@ TESTS = $(wildcard ./*.bin)
 # should not need this!
 # TTYUSB = 
 
-BOOTLOADER = my-install --trace-control
+BOOTLOADER = ../../1-unix-side/my-install --trace-control
 RUN=1
 
 # we only look at this output

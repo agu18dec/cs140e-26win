@@ -5,7 +5,7 @@ TESTS = $(wildcard ./*.bin)
 # should not need this!
 # TTYUSB = 
 
-BOOT ?= my-install 
+BOOT ?= ../../1-unix-side/my-install
 BOOTLOADER = $(BOOT) --trace-all
 RUN=1
 

@@ -63,8 +63,12 @@ static unsigned parse_baud_or_die(const char *s) {
     switch(rate) {
     case 9600: return B9600;
     case 115200: return B115200;
+#ifdef B230400
     case 230400: return B230400;
+#endif
+#ifdef B460800
     case 460800: return B460800;
+#endif
 #ifdef B576000
     case 576000: return B576000;
 #endif
@@ -176,7 +180,7 @@ int main(int argc, char *argv[]) {
     //
     // if your my-install isn't resetting when used during checking,
     // it's likely due to this timeout being too small.
-    double timeout_secs = 1.0;
+    double timeout_secs = 5.0;
     int fd = set_tty_to_8n1(tty, baud_rate, timeout_secs);
     if(fd < 0)
         panic("could not set tty: <%s>\n", dev_name);

@@ -234,19 +234,30 @@ void simple_boot(int fd, uint32_t boot_addr, const uint8_t *buf, unsigned n) {
     //      same value as an opcode and get hijacked.
 
     // 1. reply to the GET_PROG_INFO
-    todo("reply to GET_PROG_INFO");
+    uint32_t crc = crc32(buf, n);
+    trace_put32(fd, PUT_PROG_INFO);
+    trace_put32(fd, boot_addr);
+    trace_put32(fd, n);
+    trace_put32(fd, crc);
 
     // 2. drain any extra GET_PROG_INFOS
-    todo("drain any extra GET_PROG_INFOS");
+    while((op = get_op(fd)) == GET_PROG_INFO); 
 
     // 3. check that we received a GET_CODE
-    todo("check that we received a GET_CODE");
+    boot_check(fd, "expected GET_CODE", GET_CODE, op);
+    uint32_t got_crc = get_op(fd);
+    boot_check(fd, "crc mismatch in GET_CODE", crc, got_crc);
 
     // 4. handle it: send a PUT_CODE + the code.
-    todo("send PUT_CODE + the code in <buf>");
+    trace_put32(fd, PUT_CODE);
+    for(unsigned i = 0; i < n; i++)
+        trace_put8(fd, buf[i]); // byte at a time
 
     // 5. Wait for BOOT_SUCCESS
-    todo("wait for BOOT_SUCCESS");
+    op = get_op(fd);
+    if(op == BOOT_ERROR)
+        panic("pi reported BOOT_ERROR\n");
+    boot_check(fd, "expected BOOT_SUCCESS", BOOT_SUCCESS, op);
 
     boot_output("bootloader: Done.\n");
 }
