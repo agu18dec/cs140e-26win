@@ -49,6 +49,10 @@ PROGS += $(wildcard 5-test-implicit-exit-run-one.c)
 PROGS += $(wildcard 7-test-thread.c)
 PROGS += $(wildcard 7-test-ping-pong.c)
 # PROGS := $(wildcard [01234567]-test*.c)
+PROGS += co-test.c
+PROGS += loopback.c
+PROGS += extension-test.c
+COMMON_SRC += co.c co-asm.S
 
 ######################################################################
 # should not have to modify below.
