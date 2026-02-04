@@ -106,7 +106,17 @@ volatile int n_falling;
  *  2. check if it was a falling edge: return 1 if so, 0 otherwise
  */
 int falling_handler(uint32_t pc) {
-    todo("implement this: return 0 if no rising int\n");
+    dev_barrier();
+    if(!gpio_event_detected(in_pin))
+        return 0;
+    // falling edge --> pin is low now (1 -> 0)
+    if(gpio_read(in_pin) == 0) {
+        n_falling++;
+        gpio_event_clear(in_pin);
+        dev_barrier();
+        return 1;
+    }
+    return 0;
 }
 
 // initialize for a falling edge
@@ -135,7 +145,17 @@ volatile int n_rising;
  *  2. check if it was a rising edge: return 1 if so, 0 otherwise
  */
 int rising_handler(uint32_t pc) {
-    todo("implement this: return 0 if no rising int\n");
+    dev_barrier();
+    if(!gpio_event_detected(in_pin))
+        return 0;
+    // rising edge --> pin is high now (0 -> 1)
+    if(gpio_read(in_pin) == 1) {
+        n_rising++;
+        gpio_event_clear(in_pin);
+        dev_barrier();
+        return 1;
+    }
+    return 0;
 }
 
 static void rising_init_fn(void) {
@@ -186,8 +206,11 @@ int timer_test_handler(uint32_t pc) {
     dev_barrier();
 
     // should look very similar to the timer interrupt handler.
-    todo("implement this by stealing pieces from 4-interrupts/0-timer-int");
-
+    unsigned pending = GET32(IRQ_basic_pending);
+    if((pending & ARM_Timer_IRQ) == 0)
+        return 0;
+    // clear timer interrupt
+    PUT32(ARM_Timer_IRQ_Clear, 1);
     dev_barrier();
     return 1;
 }

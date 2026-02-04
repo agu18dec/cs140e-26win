@@ -32,7 +32,25 @@ void interrupt_vector(unsigned pc) {
     unsigned s = cycle_cnt_read();
 
     dev_barrier();
-    unimplemented();
+    if(!gpio_has_interrupt()) {
+        dev_barrier();
+        return;
+    }
+
+    if(!gpio_event_detected(in_pin)) {
+        dev_barrier();
+        return;
+    }
+
+    unsigned current_value = gpio_read(in_pin) & 1;
+    //value before edge.
+    unsigned prev = current_value ^ 1;
+
+    cq_push32(&uartQ, s);
+    cq_push32(&uartQ, prev);
+
+    gpio_event_clear(in_pin); // otherwise we trigger again
+
     dev_barrier();
 }
 
