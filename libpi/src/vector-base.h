@@ -21,7 +21,12 @@
 // use inline assembly to get and return the vector base's 
 // current value.
 static inline void *vector_base_get(void) {
-    todo("implement using inline assembly to get the vec base reg");
+    uint32_t v;
+    asm volatile("mrc p15, 0, %0, c12, c0, 0"
+                 : "=r"(v)
+                 :
+                 : "memory");
+    return (void *)v;
 }
 
 // set vector base register: use inline assembly.  there's only
@@ -29,7 +34,16 @@ static inline void *vector_base_get(void) {
 // use to illustrate a common pattern.
 static inline void vector_base_set_raw(uint32_t v) {
     // make sure you use prefetch flush!
-    todo("implement using inline assembly to set the vec base reg");
+    asm volatile("mcr p15, 0, %0, c12, c0, 0"
+        :
+        : "r"(v)
+        : "memory");
+
+    // prefetch flush (ARMv6): ensures subsequent fetch uses new base
+    asm volatile("mcr p15, 0, %0, c7, c5, 4"
+            :
+            : "r"(0)
+            : "memory");
 }
 
 // check that not null and alignment is good.
@@ -40,7 +54,9 @@ static inline int vector_base_chk(void *vector_base) {
     // IMPORTANT: most common mistake is to not check alignment
     // correctly. very easy way to get intermittent but violent
     // bugs.
-    todo("check alignment is correct: look at the instruction def!");
+    if(((uint32_t)vector_base & 31u) != 0) // get the least significant 5 bits of the address and check if its not multiple of 32
+        return 0;
+
     return 1;
 }
 
@@ -53,14 +69,14 @@ vector_base_reset(void *vec) {
     if(!vector_base_chk(vec))
         panic("illegal vector base %p\n", vec);
 
-    todo("get old vector base, set new one\n");
-
     // double check that what we set is what we have.
     // 
     // NOTE: common safety net pattern: read back what 
     // you wrote to make sure it is indeed what got set.
     // catches *many* bugs in this class.  (in this case:
     // alignment issues.)
+    old_vec = vector_base_get();
+    vector_base_set_raw((uint32_t)vec);
     assert(vector_base_get() == vec);
     return old_vec;
 }

@@ -17,7 +17,8 @@ STAFF_OBJS  +=  ./staff-objs/gpio-pud.o
 SRC += src/uart.c
 
 #STAFF_OBJS  +=  ./staff-objs/uart.o
-STAFF_OBJS  +=  ./staff-objs/gpio-int.o 
+#STAFF_OBJS  +=  ./staff-objs/gpio-int.o 
+SRC += $(CS140E_2026_PATH)/labs/8-device-int/2-gpio-int/gpio-int.c
 
 # these are all the locations that get made into
 # libpi.a

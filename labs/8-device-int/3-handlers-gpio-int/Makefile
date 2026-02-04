@@ -1,12 +1,12 @@
 # to use your gpio-int.c swap these.
 
 # swap these two to use your code.
-# COMMON_SRC := ../2-gpio-int/gpio-int.c
-STAFF_OBJS += $(CS140E_2026_PATH)/libpi/staff-objs/gpio-int.o
+COMMON_SRC := ../2-gpio-int/gpio-int.c
+#STAFF_OBJS += $(CS140E_2026_PATH)/libpi/staff-objs/gpio-int.o
 
 # swap these two to use your code 
-# COMMON_SRC := test-interrupts.c
-STAFF_OBJS += staff-test-interrupts.o
+COMMON_SRC += test-interrupts.c
+#	STAFF_OBJS += staff-test-interrupts.o
 
 ########################################################
 # tests: 3-* hardest, 2-* easier, 1-* easier.  
