@@ -239,7 +239,7 @@ void interrupt_vector(unsigned pc) {
 
     // Q: what happens (&why) if you uncomment the 
     // print statement?  
-    // printk("In interrupt handler at time: %d\n", clk);
+    //printk("In interrupt handler at time: %d\n", clk);
 }
 
 // simple driver: initialize and then run. 

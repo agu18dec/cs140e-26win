@@ -226,7 +226,7 @@ Disassembly of section .text:
     8300:	e24dd00c 	sub	sp, sp, #12, 0
     8304:	ebffff78 	bl	80ec <interrupt_init>
     8308:	e3a01c01 	mov	r1, #256	; 0x100
-    830c:	e3a00010 	mov	r0, #16, 0
+    830c:	e1a00001 	mov	r0, r1
     8310:	ebffff48 	bl	8038 <timer_init>
     8314:	e59f010c 	ldr	r0, [pc, #268]	; 8428 <notmain+0x12c>
     8318:	eb000088 	bl	8540 <printk>

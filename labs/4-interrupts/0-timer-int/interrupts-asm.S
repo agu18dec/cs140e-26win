@@ -102,7 +102,7 @@ interrupt_asm:
                             @ calling conventions.
 
   @ pop regs: better match push (what happens if not?)
-  pop   {r0-r12,lr} 	    @ pop integer registers
+  pop   {r0-r12, lr} 	    @ pop integer registers
                             @ this MUST MATCH the push.
                             @ very common mistake.
 

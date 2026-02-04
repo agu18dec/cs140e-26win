@@ -93,6 +93,8 @@ undefined_instruction_asm:
     unexpected(undefined_instruction_vector,4)
 software_interrupt_asm:
     unexpected(syscall_vector,4)
+    push {r1-r12, lr}
+    pop {r1-r12, lr}
 prefetch_abort_asm:
     unexpected(prefetch_abort_vector,4)
 data_abort_asm:

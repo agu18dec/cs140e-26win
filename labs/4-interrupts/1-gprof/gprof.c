@@ -62,7 +62,7 @@ static void gprof_inc(unsigned pc) {
 //  - take the addresses and look in <gprof.list>
 //  - we expect pc's to be in GET32, PUT32, different
 //    uart routines, or rpi_wait.  (why?)
-static void gprof_dump(unsigned min_val) {
+static void gprof_dump(unsigned min_val) {    
     printk(" gprof dump (min_val=%d) \n`", min_val);
     for(unsigned i = 0; i < hist_n; i++) {
         if(hist[i] > min_val) {
