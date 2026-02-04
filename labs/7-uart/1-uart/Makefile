@@ -16,7 +16,7 @@ BOOTLOADER = my-install
 BOOTLOADER = pi-install
 
 # uncomment to build yours
-# COMMON_SRC += uart.c
+#COMMON_SRC += uart.c
 
 # we use a custom cstart
 COMMON_SRC += cstart.c 

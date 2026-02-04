@@ -1,0 +1,132 @@
+TRACE: out file for <0-uart-getc>
+TRACE:0: calling pi code
+TRACE:1: dev_barrier 
+TRACE:2: dev_barrier 
+TRACE:3: GET32(0x20215054) = 0x2eb141f2
+TRACE:4: dev_barrier 
+TRACE:5: dev_barrier 
+TRACE:6: GET32(0x20215054) = 0x2eb141f2
+TRACE:7: dev_barrier 
+TRACE:8: dev_barrier 
+TRACE:9: GET32(0x20215054) = 0x2eb141f2
+TRACE:10: dev_barrier 
+TRACE:11: dev_barrier 
+TRACE:12: GET32(0x20215054) = 0x2eb141f2
+TRACE:13: dev_barrier 
+TRACE:14: dev_barrier 
+TRACE:15: GET32(0x20215054) = 0x2eb141f2
+TRACE:16: dev_barrier 
+TRACE:17: dev_barrier 
+TRACE:18: GET32(0x20215054) = 0x2eb141f2
+TRACE:19: dev_barrier 
+TRACE:20: dev_barrier 
+TRACE:21: GET32(0x20215054) = 0x2eb141f2
+TRACE:22: dev_barrier 
+TRACE:23: dev_barrier 
+TRACE:24: GET32(0x20215054) = 0x2eb141f2
+TRACE:25: dev_barrier 
+TRACE:26: dev_barrier 
+TRACE:27: GET32(0x20215054) = 0x2eb141f2
+TRACE:28: dev_barrier 
+TRACE:29: dev_barrier 
+TRACE:30: GET32(0x20215054) = 0x2eb141f2
+TRACE:31: dev_barrier 
+TRACE:32: dev_barrier 
+TRACE:33: GET32(0x20215054) = 0x2eb141f2
+TRACE:34: dev_barrier 
+TRACE:35: dev_barrier 
+TRACE:36: GET32(0x20215054) = 0x2eb141f2
+TRACE:37: dev_barrier 
+TRACE:38: dev_barrier 
+TRACE:39: GET32(0x20215054) = 0x2eb141f2
+TRACE:40: dev_barrier 
+TRACE:41: dev_barrier 
+TRACE:42: GET32(0x20215054) = 0x2eb141f2
+TRACE:43: dev_barrier 
+TRACE:44: dev_barrier 
+TRACE:45: GET32(0x20215054) = 0x2eb141f2
+TRACE:46: dev_barrier 
+TRACE:47: dev_barrier 
+TRACE:48: GET32(0x20215054) = 0x2eb141f2
+TRACE:49: dev_barrier 
+TRACE:50: dev_barrier 
+TRACE:51: GET32(0x20215054) = 0x2eb141f2
+TRACE:52: dev_barrier 
+TRACE:53: dev_barrier 
+TRACE:54: GET32(0x20215054) = 0x2eb141f2
+TRACE:55: dev_barrier 
+TRACE:56: dev_barrier 
+TRACE:57: GET32(0x20215054) = 0x2eb141f2
+TRACE:58: dev_barrier 
+TRACE:59: dev_barrier 
+TRACE:60: GET32(0x20215054) = 0x2eb141f2
+TRACE:61: dev_barrier 
+TRACE:62: dev_barrier 
+TRACE:63: GET32(0x20215054) = 0x2eb141f2
+TRACE:64: dev_barrier 
+TRACE:65: dev_barrier 
+TRACE:66: GET32(0x20215054) = 0x2eb141f2
+TRACE:67: dev_barrier 
+TRACE:68: dev_barrier 
+TRACE:69: GET32(0x20215054) = 0x2eb141f2
+TRACE:70: dev_barrier 
+TRACE:71: dev_barrier 
+TRACE:72: GET32(0x20215054) = 0x2eb141f2
+TRACE:73: dev_barrier 
+TRACE:74: dev_barrier 
+TRACE:75: GET32(0x20215054) = 0x2eb141f2
+TRACE:76: dev_barrier 
+TRACE:77: dev_barrier 
+TRACE:78: GET32(0x20215054) = 0x2eb141f2
+TRACE:79: dev_barrier 
+TRACE:80: dev_barrier 
+TRACE:81: GET32(0x20215054) = 0x2eb141f2
+TRACE:82: dev_barrier 
+TRACE:83: dev_barrier 
+TRACE:84: GET32(0x20215054) = 0x2eb141f2
+TRACE:85: dev_barrier 
+TRACE:86: dev_barrier 
+TRACE:87: GET32(0x20215054) = 0x2eb141f2
+TRACE:88: dev_barrier 
+TRACE:89: dev_barrier 
+TRACE:90: GET32(0x20215054) = 0x2eb141f2
+TRACE:91: dev_barrier 
+TRACE:92: dev_barrier 
+TRACE:93: GET32(0x20215054) = 0x2eb141f2
+TRACE:94: dev_barrier 
+TRACE:95: dev_barrier 
+TRACE:96: GET32(0x20215054) = 0x2eb141f2
+TRACE:97: dev_barrier 
+TRACE:98: dev_barrier 
+TRACE:99: GET32(0x20215054) = 0x2eb141f2
+TRACE:100: dev_barrier 
+TRACE:101: dev_barrier 
+TRACE:102: GET32(0x20215054) = 0x2eb141f2
+TRACE:103: dev_barrier 
+TRACE:104: dev_barrier 
+TRACE:105: GET32(0x20215054) = 0x2eb141f2
+TRACE:106: dev_barrier 
+TRACE:107: dev_barrier 
+TRACE:108: GET32(0x20215054) = 0x2eb141f2
+TRACE:109: dev_barrier 
+TRACE:110: dev_barrier 
+TRACE:111: GET32(0x20215054) = 0x2eb141f2
+TRACE:112: dev_barrier 
+TRACE:113: dev_barrier 
+TRACE:114: GET32(0x20215054) = 0x2eb141f2
+TRACE:115: dev_barrier 
+TRACE:116: dev_barrier 
+TRACE:117: GET32(0x20215054) = 0x2eb141f2
+TRACE:118: dev_barrier 
+TRACE:119: dev_barrier 
+TRACE:120: GET32(0x20215054) = 0x2eb141f2
+TRACE:121: dev_barrier 
+TRACE:122: dev_barrier 
+TRACE:123: GET32(0x20215054) = 0x2eb141f2
+TRACE:124: dev_barrier 
+TRACE:125: dev_barrier 
+TRACE:126: GET32(0x20215054) = 0x2eb141f2
+TRACE:127: dev_barrier 
+TRACE:128: dev_barrier 
+TRACE: exiting after 129 trace statements
+TRACE: pi exited cleanly: 20 calls to random

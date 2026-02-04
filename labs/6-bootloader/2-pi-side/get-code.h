@@ -215,7 +215,7 @@ uint32_t get_code(void) {
         boot_err(BOOT_ERROR, "checksum mismatch after copy\n");
 
     // 7. send back a BOOT_SUCCESS!
-    boot_putk("Agam: success: Received the program!");
+    boot_putk("UART: Agam: success: Received the program!");
 
     // woo!
     boot_put32(BOOT_SUCCESS);

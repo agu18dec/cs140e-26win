@@ -14,7 +14,9 @@ SRC += src/gpio.c
 # 3. comment out ours below:
 STAFF_OBJS  +=  ./staff-objs/gpio-pud.o
 
-STAFF_OBJS  +=  ./staff-objs/uart.o
+SRC += src/uart.c
+
+#STAFF_OBJS  +=  ./staff-objs/uart.o
 STAFF_OBJS  +=  ./staff-objs/gpio-int.o 
 
 # these are all the locations that get made into

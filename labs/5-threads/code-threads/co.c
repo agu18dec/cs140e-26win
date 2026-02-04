@@ -31,10 +31,6 @@ void co_transfer(co_th_t *to) {
 
     co_current = to;
     co_switch_asm(from, to);
-
-    // If this ever runs, it means we switched away and later resumed `from`.
-    // That's normal for yields, but should NOT happen for co_done paths.
-    //trace("co_transfer: resumed %p\n", from);
 }
 
 void co_done(co_th_t *co) {

@@ -25,7 +25,26 @@ void sw_uart_put8(sw_uart_t *uart, uint8_t b) {
              u = n,
              s = cycle_cnt_read();
 
-    todo("implement this code\n");
+    auto inline void wait_until(uint32_t target) {
+        while((int32_t)(cycle_cnt_read() - target) < 0)
+            ;
+    }
+     // START bit = 0 for 1 bit time
+    gpio_write(tx, 0);
+    s += n;
+    wait_until(s);
+
+    // DATA bits: LS bits first, each for 1 bit time
+    for(unsigned i = 0; i < 8; i++) {
+        gpio_write(tx, (b >> i) & 1);
+        s += n;
+        wait_until(s);
+    }
+    // STOP bit = 1 for at least 1 bit time
+    gpio_write(tx, 1);
+    s += n;
+    wait_until(s);
+
 }
 
 // optional: do receive.
@@ -33,12 +52,30 @@ void sw_uart_put8(sw_uart_t *uart, uint8_t b) {
 //      time it will disappear.
 int sw_uart_get8_timeout(sw_uart_t *uart, uint32_t timeout_usec) {
     unsigned rx = uart->rx;
+    uint32_t n = uart->cycle_per_bit;
 
-    // right away (used to be return never).
-    while(!wait_until_usec(rx, 0, timeout_usec))
+    if(!wait_until_usec(rx, 0, timeout_usec)) {
         return -1;
+    }
 
-    todo("implement this code\n");
+    auto inline void wait_until(uint32_t target) {
+        while((int32_t)(cycle_cnt_read() - target) < 0)
+            ;
+    }
+
+    uint32_t t = cycle_cnt_read();
+    t += n + (n >> 1);
+    wait_until(t);
+    uint8_t v = 0;
+    for(unsigned i = 0; i < 8; i++) {
+        unsigned bit = gpio_read(rx) & 1u;
+        v |= (bit << i);
+
+        t += n;
+        wait_until(t);
+    }
+
+    return (int)v;
 }
 
 // finish implementing this routine.  
@@ -61,7 +98,10 @@ sw_uart_t sw_uart_init_helper(unsigned tx, unsigned rx,
             cyc_per_bit, cyc_per_bit * baud);
 
     // make sure you set TX to its correct default!
-    todo("setup rx,tx and initial state of tx pin.");
+    gpio_set_input(rx);
+    gpio_set_output(tx);
+
+    gpio_write(tx, 1); // set to high to wait for falling edge of start bit
 
     return (sw_uart_t) { 
             .tx = tx, 

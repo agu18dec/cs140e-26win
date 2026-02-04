@@ -1,5 +1,4 @@
 // Extension for Lab 5: how fast can you make a loopback bit-bang protocol?
-// To run, connect GPIOs 20 and 21 with a jumper wire and then "make run"
 #include "test-header.h"
 
 const int receiver_pin = 20;
@@ -7,7 +6,6 @@ const int sender_pin = 21;
 const int num_bits = 1000;
 const int delay_amt_us = 10;
 
-// taken from 7-test-realtime-yield.c
 static void wait_usec(unsigned n) {
     demand(n < 100000, "unlikely large delay = %dusec!\n", n);
     unsigned start = timer_get_usec();

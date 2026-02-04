@@ -11,6 +11,8 @@ LIB_SRC  += $(LPP)/libc/printk.c
 LIB_SRC  += $(LPP)/libc/putk.c
 LIB_SRC  += $(LPP)/libc/putchar.c
 LIB_SRC  += $(LPP)/staff-src/clean-reboot.c
+LIB_SRC  += $(LPP)/libc/gpio-panic.c
+
 
 # 3. pull in your gpio.c and uart.
 ifdef CS140E_STAFF

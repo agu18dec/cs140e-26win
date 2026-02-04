@@ -1,0 +1,61 @@
+TRACE: out file for <1-hello>
+TRACE:0: calling pi code
+TRACE:1: dev_barrier 
+TRACE:2: GET32(0x20200004) = 0x643c9869
+TRACE:3: PUT32(0x20200004) = 0x643ca869
+TRACE:4: GET32(0x20200004) = 0x643ca869
+TRACE:5: PUT32(0x20200004) = 0x643d2869
+TRACE:6: dev_barrier 
+TRACE:7: GET32(0x20215004) = 0x0
+TRACE:8: dev_barrier 
+TRACE:9: PUT32(0x20215004) = 0x1
+TRACE:10: dev_barrier 
+TRACE:11: UART: PUT32(0x20215060) = 0x0 
+TRACE:12: UART: turning UART off PUT32(20215060)=0
+TRACE:13: dev_barrier 
+TRACE:14: dev_barrier 
+TRACE:15: dev_barrier 
+TRACE:16: dev_barrier 
+TRACE:17: dev_barrier 
+TRACE:18: dev_barrier 
+TRACE:19: dev_barrier 
+TRACE:20: UART: PUT32(0x20215060) = 0x3 
+TRACE:21: UART: turned UART on PUT32(20215060)=3
+TRACE:22: dev_barrier 
+TRACE:23: dev_barrier 
+TRACE:24: dev_barrier 
+TRACE:25: GET32(0x20215054) = 0x2eb141f2
+TRACE:26: dev_barrier 
+TRACE:27: UART: PUT32(0x20215040) = 0x68 
+TRACE:28: dev_barrier 
+TRACE:29: dev_barrier 
+TRACE:30: dev_barrier 
+TRACE:31: GET32(0x20215054) = 0x2eb141f2
+TRACE:32: dev_barrier 
+TRACE:33: UART: PUT32(0x20215040) = 0x65 
+TRACE:34: dev_barrier 
+TRACE:35: dev_barrier 
+TRACE:36: dev_barrier 
+TRACE:37: GET32(0x20215054) = 0x2eb141f2
+TRACE:38: dev_barrier 
+TRACE:39: UART: PUT32(0x20215040) = 0x6c 
+TRACE:40: dev_barrier 
+TRACE:41: dev_barrier 
+TRACE:42: dev_barrier 
+TRACE:43: GET32(0x20215054) = 0x2eb141f2
+TRACE:44: dev_barrier 
+TRACE:45: UART: PUT32(0x20215040) = 0x6c 
+TRACE:46: dev_barrier 
+TRACE:47: dev_barrier 
+TRACE:48: dev_barrier 
+TRACE:49: GET32(0x20215054) = 0x2eb141f2
+TRACE:50: dev_barrier 
+TRACE:51: UART: PUT32(0x20215040) = 0x6f 
+TRACE:52: dev_barrier 
+TRACE:53: dev_barrier 
+TRACE:54: dev_barrier 
+TRACE:55: GET32(0x20215054) = 0x2eb141f2
+TRACE:56: dev_barrier 
+TRACE:57: UART: PUT32(0x20215040) = 0xa 
+TRACE:58: dev_barrier 
+TRACE: pi exited cleanly: 20 calls to random
