@@ -41,8 +41,17 @@ static int syscall_handler_full(regs_t *r) {
             // used to do a context switch from user->privileged.
             switchto((void*)arg0);
             panic("not reached\n");
-    case SYS_TRYLOCK:
-        panic("not handling yet\n");
+    case SYS_TRYLOCK: {
+        volatile int *l = (volatile int *)arg0;
+        if (*l == 0) {
+            *l = 1;
+            r->regs[0] = 1;  // return 1 = success
+        } else {
+            r->regs[0] = 0;  // return 0 = failed, lock held
+        }
+        switchto(r);
+        panic("not reached\n");
+    }
 
     case SYS_TEST:
         printk("running empty syscall with arg=%d\n", arg0);
@@ -65,11 +74,22 @@ static void single_step_handler_full(regs_t *r) {
 
     // r0 is in r->regs[0], r1 is in r->regs[1], ...
     uint32_t pc = r->regs[15];
-    uint32_t n = ++checker->inst_count;
+    if(pc == (uint32_t)A_terminated) { // A() completed we are done and dont need to single step
+        brkpt_mismatch_stop();
+        switchto(r);
+    }
+    checker_t *c = (checker_t*)checker;
+    uint32_t n = ++c->inst_count;
 
-
-    // TODO: you'll have to add code to do the switching here.
-    output("single-step handler: inst=%d: A:pc=%x\n", n,pc);
+    //output("single-step handler: inst=%d: A:pc=%x\n", n,pc);
+    // compare instruction count with switch_on_inst_n
+    if (n >= c->switch_on_inst_n && !c->switched_p) {
+        if (c->B(c)) { // b succeeds
+            c->switched_p = 1;
+            switchto(r);
+        }
+        // b failed we'll try at next instruction
+    }
 
     // recall: the weird way single step works: run the instruction 
     // at address <pc>, by setting up a mismatch fault for any other
@@ -169,6 +189,7 @@ int check(checker_t *c) {
     //
     // if AB commuted, we could also check BA but this won't be 
     // true in general.
+    checker = c;
     for(int i = 0; i < 10; i++) {
         // 1.  initialize the state.
         c->init(c);     
@@ -186,15 +207,14 @@ int check(checker_t *c) {
     // shows how to run code with single stepping: do the same sequential
     // checking but run A() in single step mode: 
     // should still pass (obviously)
-    checker = c;
-    for(int i = 0; i < 10; i++) {
-        c->init(c);
-        run_A_at_userlevel(c);
-        if(!c->B(c))
-            panic("B should not fail\n");
-        if(!c->check(c))
-            panic("check failed sequentially: code is broken\n");
-    }
+    // for(int i = 0; i < 10; i++) {
+    //     c->init(c);
+    //     run_A_at_userlevel(c);
+    //     if(!c->B(c))
+    //         panic("B should not fail\n");
+    //     if(!c->check(c))
+    //         panic("check failed sequentially: code is broken\n");
+    // }
 
     //******************************************************************
     // this is what you build: check that A(),B() code works
@@ -222,7 +242,20 @@ int check(checker_t *c) {
     //  }
     // 
     //  return 0 if there were errors.
-    todo("implement true interleaving!\n");
+    int errors = 0;
+    for (int k = 1; k < 10000; k++) {
+        c->init(c);
+        c->inst_count = 0;
+        c->switch_on_inst_n = k;
+        c->switched_p = 0;
 
-    return 1;
+        run_A_at_userlevel(c);
+        if (!c->switched_p) { break;} // A() completed without switching to B()
+        // at this point B ran successfully, so check the state
+        if (!c->check(c)) { 
+            errors++; 
+            output("ERROR: interleaving failed at k=%d\n", k);
+        }
+    }
+    return (errors==0) ? 1 : 0;
 }

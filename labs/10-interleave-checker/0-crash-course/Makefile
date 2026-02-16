@@ -1,5 +1,7 @@
 PROGS += 0-nop1-example.c
 PROGS += 1-many-fn-example.c
+PROGS += copy-1-many-fn-example.c
+PROGS += mem_corruption.c
 
 L := $(CS140E_2026_PATH)/libpi/
 STAFF_OBJS += $(L)/staff-objs/staff-kmalloc.o
