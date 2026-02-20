@@ -1,0 +1,3 @@
+ERROR: interleaving failed at k=5
+ERROR: interleaving failed at k=6
+SUCCESS:lock-free stack failed as expected, ntrials=

@@ -1,0 +1,2 @@
+ERROR: interleaving failed at k=4
+SUCCESS:torn write detected as expected, ntrials=

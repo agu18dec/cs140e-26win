@@ -1,0 +1,27 @@
+DEBUG:done with options: dev name=</dev/cu.usbserial-110>, pi-prog=<./mem_corruption.bin>, trace=0
+opened tty port </dev/cu.usbserial-110>.
+DEBUG:my-install: tty-usb=</dev/cu.usbserial-110> program=<./mem_corruption.bin>: about to boot
+TRACE:simple_boot: sending 14848 bytes, crc32=c791c77c
+BOOT:waiting for a start
+DEBUG:PRINT_STRING:pi sent print: <UART: Agam: success: Received the program!>
+BOOT:bootloader: Done.
+TRACE:******************<loop_fn>******************************
+TRACE:****************** top PCs ******************************
+TRACE:TOP 0: pc=0x8194 count=101 inst=0xe3530063
+TRACE:TOP 1: pc=0x8198 count=101 inst=0x8a000004
+TRACE:TOP 2: pc=0x819c count=100 inst=0xe59d2004
+TRACE:TOP 3: pc=0x81a0 count=100 inst=0xe0822003
+TRACE:TOP 4: pc=0x81a4 count=100 inst=0xe58d2004
+TRACE:TOP 5: pc=0x81a8 count=100 inst=0xe2833001
+TRACE:TOP 6: pc=0x81ac count=100 inst=0xeafffff8
+TRACE:TOP 7: pc=0x8048 count=1 inst=0xe1a01000
+TRACE:TOP 8: pc=0x804c count=1 inst=0xe3a00002
+TRACE:TOP 9: pc=0x8050 count=1 inst=0xef000001
+TRACE:TOP 10: pc=0x8188 count=1 inst=0xe24dd008
+TRACE:TOP 11: pc=0x818c count=1 inst=0xe3a03000
+TRACE:******************<part2: smash_watch_addr>******************************
+PANIC:mem_corruption.c:single_step_handler:83:MEM CORRUPTION: *0x118000 expected=0xdeadbeef got=0x12345678 at pc=0x81e0 inst=0xe12fff1e
+
+DONE!!!
+
+bootloader: pi exited.  cleaning up

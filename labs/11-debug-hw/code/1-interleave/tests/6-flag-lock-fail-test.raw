@@ -1,0 +1,12 @@
+DEBUG:done with options: dev name=</dev/cu.usbserial-110>, pi-prog=<./tests/6-flag-lock-fail-test.bin>, trace=0
+opened tty port </dev/cu.usbserial-110>.
+DEBUG:my-install: tty-usb=</dev/cu.usbserial-110> program=<./tests/6-flag-lock-fail-test.bin>: about to boot
+TRACE:simple_boot: sending 13600 bytes, crc32=78174c5e
+BOOT:waiting for a start
+DEBUG:PRINT_STRING:pi sent print: <UART: Agam: success: Received the program!>
+BOOT:bootloader: Done.
+PANIC:tests/6-flag-lock-fail-test.c:notmain:53:check should have failed!
+
+DONE!!!
+
+bootloader: pi exited.  cleaning up

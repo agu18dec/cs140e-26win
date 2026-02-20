@@ -1,0 +1,11 @@
+DEBUG:done with options: dev name=</dev/cu.usbserial-110>, pi-prog=<./tests/0-epsilon-test.bin>, trace=0
+opened tty port </dev/cu.usbserial-110>.
+DEBUG:my-install: tty-usb=</dev/cu.usbserial-110> program=<./tests/0-epsilon-test.bin>: about to boot
+TRACE:simple_boot: sending 13568 bytes, crc32=3e7983c5
+BOOT:waiting for a start
+DEBUG:PRINT_STRING:pi sent print: <UART: Agam: success: Received the program!>
+BOOT:bootloader: Done.
+SUCCESS:worked!  ntrials=[0]
+DONE!!!
+
+bootloader: pi exited.  cleaning up

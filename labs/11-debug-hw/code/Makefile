@@ -12,8 +12,8 @@ PROGS += 0-example-debug-id.c
 OUR_START = single-step-start.S
 
 # you should delete these when done.
-STAFF_OBJS += staff-watchpoint.o
-STAFF_OBJS += staff-breakpoint.o
+# STAFF_OBJS += staff-watchpoint.o
+# STAFF_OBJS += staff-breakpoint.o
 
 COMMON_SRC += breakpoint.c
 COMMON_SRC += watchpoint.c
