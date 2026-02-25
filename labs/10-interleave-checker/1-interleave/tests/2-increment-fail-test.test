@@ -1,0 +1,3 @@
+ERROR: interleaving failed at k=3
+ERROR: interleaving failed at k=4
+SUCCESS:check failed as it should have, ntrials=

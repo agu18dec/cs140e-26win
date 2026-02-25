@@ -108,8 +108,8 @@ void notmain(void) {
     // see <start.S>
     void regs_init_ident(void);
 
-    regs[0] = (uint32_t)regs_init_ident;
-    regs[1] = USER_MODE;
+    regs[0] = (uint32_t)regs_init_ident; // pc
+    regs[1] = USER_MODE; // cpsr
     rfe_asm(regs);
 
     not_reached();

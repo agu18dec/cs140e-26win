@@ -10,8 +10,8 @@ PROGS += 3-simple-restore-test.c
 PROGS += 3-multi-restore-test.c	 
 
 # you have to implement these!
-# PROGS += 4-match-restore-test.c  
-# PROGS += 4-multi-match-test.c	 
+PROGS += 4-match-restore-test.c  
+PROGS += 4-multi-match-restore-test.c	 
 
 PROGS += 5-match-priv-test.c
 PROGS += 5-multi-priv-test.c

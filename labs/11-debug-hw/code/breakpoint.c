@@ -12,7 +12,7 @@ cp_asm(cp14_bcr0, p14, 0, c0, c0, 5)
 cp_asm(cp14_bvr1, p14, 0, c0, c1, 4)
 cp_asm(cp14_bcr1, p14, 0, c0, c1, 5)
 
-static inline int ifsr_debug_event(uint32_t ifsr) {
+static inline int ifsr_debug_event(uint32_t ifsr) {m
     if(bit_is_on(ifsr, 10))
         return 0;
     return bits_eq(ifsr, 0, 3, 0b0010);   // debug event

@@ -6,13 +6,22 @@
 
 @ terminal syscall: print the registers we have.
 syscall_reg_save:
-    asm_todo("save all 17 registers onto stack: pass pointer to syscall_handler");
-    asm_not_reached();
+    sub sp, sp, #68 @ 17 words
+    stm sp, {r0-r12} @r13 is now supervisor mode and so banked registers
+    add r1, sp, #52     @ &regs[13]
+    stm r1, {sp, lr}^
+    str lr, [sp, #60] @ lr == return pc
+    mrs r2, spsr
+    str r2, [sp, #64]
+    mov r0, sp @ pass pointer to register array
+    bl syscall_handler
+    1:  b 1b
 
 @ use rfe to load <pc> and <cpsr> from the 2 entry
 @ array passed in <r0>.
 MK_FN(rfe_asm)
-    asm_todo("pull this from part 1");
+    mov sp, r0
+    rfe sp
     asm_not_reached();
 
 @ for test 1.
@@ -32,8 +41,19 @@ syscall_reg_save_vec:
 
 @ don't forget to fix lr!
 prefetch_reg_save:
-    asm_todo("save 17 registers onto stack: pass pointer to prefetc_abort_handler");
-    asm_not_reached();
+    @pass in r0 as an argument to prefetch_abort_handler, save r0-15 + cpsr
+    mov sp, #INT_STACK_ADDR
+    sub sp, sp, #68
+    stm sp, {r0-r12}
+    add r1, sp, #52     @ &regs[13]
+    stm r1, {sp, lr}^
+    sub r2, lr, #4
+    str r2, [sp, #60] @ lr == return pc
+    mrs r2, spsr
+    str r2, [sp, #64]
+    mov r0, sp @ pass pointer to register array
+    bl prefetch_abort_handler
+    1:  b 1b
 
 .align 5; 
 .globl simple_reg_save_restore_vec
