@@ -4,4 +4,4 @@ TESTS = 0-ack-hw-check.bin   0-no-ack-hw-check.bin  1-one-way-ack.bin  1-one-way
 GREP_STR := 'HASH:\|ERROR:\|PANIC:\|SUCCESS:\|NRF'
 
 BOOTLOADER = my-install
-include $(CS140E_2023_PATH)/libpi/mk/Makefile.check
+include $(CS140E_2026_PATH)/libpi/mk/Makefile.check

@@ -16,6 +16,7 @@ PROGS += $(wildcard tests/0-*.c)
 PROGS += $(wildcard tests/1-*.c)
 PROGS += $(wildcard tests/2-*.c)
 PROGS += $(wildcard tests/3-*.c)
+PROGS += $(wildcard tests/4-*.c)
 
 # starter code.  
 COMMON_SRC := nrf-hw-support.c nrf-public.c nrf-driver.c
