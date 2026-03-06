@@ -1,0 +1,3 @@
+DEBUG:done with options: dev name=</dev/cu.usbserial-10>, pi-prog=<./tests/4-ping-pong-server.bin>, trace=0
+opened tty port </dev/cu.usbserial-10>.
+set-tty-8n1.c:set_tty_to_8n1:62:PANIC:tcsetattr failed

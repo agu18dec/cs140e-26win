@@ -1,41 +1,109 @@
-// Part 5: Ping-pong test - CLIENT side (run on PARTNER's Pi).
-// You run 4-ping-pong-server.c on your Pi.
-//
-// Address setup: Partner listens on client_addr, sends to server_addr (your RX).
-// You listen on server_addr, send to client_addr (partner's RX).
 #include "nrf-test.h"
+#include "nrf-hw-support.h"
 
-enum { ntrial = 100, timeout_usec = 1000, nbytes = 4 };
+enum {
+    ntrial = 200,
+    nbytes = 4,
+    timeout_usec = 200000
+};
+
+#ifndef MY_RX_ADDR
+# define MY_RX_ADDR   0xa1a1a1
+#endif
+
+#ifndef PEER_RX_ADDR
+# define PEER_RX_ADDR 0xb2b2b2
+#endif
+
+#ifndef I_AM_INITIATOR
+# define I_AM_INITIATOR 1
+#endif
+
+#ifndef USE_CLIENT_NIC
+# define USE_CLIENT_NIC 0
+#endif
+
+static uint32_t mk_reply(uint32_t x) {
+    return x ^ 0xffffffffu;
+}
+
+static int wait_for_expected_reply(nrf_t *nic, uint32_t expected, uint32_t *got) {
+    uint32_t start = timer_get_usec();
+    while(timer_get_usec() - start < timeout_usec) {
+        int ret = nrf_read_exact_timeout(nic, got, nbytes, 3000);
+        if(ret != 4)
+            continue;
+        if(*got == expected)
+            return 1;
+    }
+    return 0;
+}
+
+static nrf_t *partner_nic_mk(void) {
+    nrf_conf_t c = USE_CLIENT_NIC ? client_conf(nbytes) : server_conf(nbytes);
+    return nrf_init_acked(c, MY_RX_ADDR);
+}
 
 void notmain(void) {
     kmalloc_init_mb(1);
 
-    trace("Ping-pong CLIENT: listening on %x, sending to %x\n",
-          client_addr, server_addr);
+    trace("partner ping-pong: my_rx=%x peer_rx=%x initiator=%d use_client_nic=%d\n",
+        MY_RX_ADDR, PEER_RX_ADDR, I_AM_INITIATOR, USE_CLIENT_NIC);
 
-    nrf_t *c = client_mk_ack(client_addr, nbytes);
-    nrf_dump("client config:\n", c);
+    nrf_t *nic = partner_nic_mk();
 
-    nrf_stat_start(c);
+    // Don't manually override RX_ADDR_P0 here.
+    // nrf_send_ack() will set TX_ADDR and RX_ADDR_P0 to PEER_RX_ADDR per send.
 
-    unsigned npackets = 0, ntimeout = 0;
-    uint32_t got = 0;
+    nrf_dump("partner nic config", nic);
+    nrf_stat_start(nic);
 
-    for (unsigned i = 0; i < ntrial; i++) {
-        if (i && i % 20 == 0)
-            trace("client: got %d [timeouts=%d]\n", npackets, ntimeout);
+    if(I_AM_INITIATOR)
+        delay_ms(700);
 
-        // Receive from partner (they send to client_addr = our RX)
-        int ret = nrf_read_exact_timeout(c, &got, 4, timeout_usec);
-        if (ret != 4) {
-            ntimeout++;
+    unsigned ok = 0, timeout = 0;
+
+    for(unsigned i = 0; i < ntrial; i++) {
+        uint32_t req = 0x140e0000u | i;
+        uint32_t rsp = 0;
+
+        if(I_AM_INITIATOR) {
+            printk("initiator sending req=%x\n", req);
+
+            if(nrf_send_ack(nic, PEER_RX_ADDR, &req, nbytes) != 4)
+                panic("initiator send failed: req=%x\n", req);
+
+            if(!wait_for_expected_reply(nic, mk_reply(req), &rsp)) {
+                printk("initiator timeout waiting for rsp to req=%x\n", req);
+                timeout++;
+                continue;
+            }
+
+            printk("initiator received rsp=%x\n", rsp);
+            ok++;
         } else {
-            npackets++;
-            // Echo back to partner (server_addr = their RX address)
-            nrf_send_ack(c, server_addr, &got, 4);
+            printk("responder waiting for req\n");
+
+            uint32_t got = 0;
+            if(nrf_read_exact_timeout(nic, &got, nbytes, timeout_usec) != 4) {
+                printk("responder timeout waiting for req\n");
+                timeout++;
+                continue;
+            }
+
+            printk("responder received req=%x\n", got);
+
+            rsp = mk_reply(got);
+            printk("responder sending rsp=%x\n", rsp);
+
+            if(nrf_send_ack(nic, PEER_RX_ADDR, &rsp, nbytes) != 4)
+                panic("responder send failed: rsp=%x\n", rsp);
+
+            ok++;
         }
     }
 
-    trace("client done: %d packets, %d timeouts\n", npackets, ntimeout);
-    nrf_stat_print(c, "client");
+    trace("partner ping-pong done: ok=%d timeout=%d of %d rounds\n",
+        ok, timeout, ntrial);
+    nrf_stat_print(nic, "partner ping-pong stats");
 }

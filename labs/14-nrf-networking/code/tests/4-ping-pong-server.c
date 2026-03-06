@@ -1,17 +1,29 @@
-// Part 5: Ping-pong test - SERVER side (run on YOUR Pi).
-// Your partner runs 4-ping-pong-client.c on their Pi.
-//
-// Address setup: You listen on server_addr, send to client_addr (partner's RX).
-// Partner listens on client_addr, send to server_addr (your RX).
+// Ping-pong SERVER side
 #include "nrf-test.h"
+#include "nrf-hw-support.h"
 
-enum { ntrial = 100, timeout_usec = 1000, nbytes = 4 };
+enum { ntrial = 100, timeout_usec = 5000, nbytes = 4 };
+
+static int net_get32(nrf_t *nic, uint32_t *out) {
+    int ret = nrf_read_exact_timeout(nic, out, 4, timeout_usec);
+    if(ret != 4) {
+        debug("server receive failed: ret=%d\n", ret);
+        return 0;
+    }
+    return 1;
+}
+
+static void net_put32(nrf_t *nic, uint32_t txaddr, uint32_t x) {
+    int ret = nrf_send_ack(nic, txaddr, &x, 4);
+    if(ret != 4)
+        panic("server send ret=%d, expected 4\n", ret);
+}
 
 void notmain(void) {
     kmalloc_init_mb(1);
 
-    trace("Ping-pong SERVER: listening on %x, sending to %x\n",
-          server_addr, client_addr);
+    trace("Ping-pong SERVER\n");
+    trace("listening on %x, sending to %x\n", server_addr, client_addr);
 
     nrf_t *s = server_mk_ack(server_addr, nbytes);
     nrf_dump("server config:\n", s);
@@ -22,25 +34,35 @@ void notmain(void) {
     uint32_t exp = 0, got = 0;
 
     for (unsigned i = 0; i < ntrial; i++) {
+
         if (i && i % 20 == 0)
-            trace("server: sent %d, got %d [timeouts=%d]\n",
-                  npackets, ntimeout, ntimeout);
+            trace("server progress: success=%d timeouts=%d\n",
+                  npackets, ntimeout);
 
-        // Send to partner (client_addr = their RX address)
         uint32_t val = ++exp;
-        nrf_send_ack(s, client_addr, &val, 4);
 
-        // Receive partner's reply (they send to server_addr = our RX)
-        int ret = nrf_read_exact_timeout(s, &got, 4, timeout_usec);
-        if (ret != 4) {
+        // send packet
+        net_put32(s, client_addr, val);
+
+        // small gap helps radio turnaround
+        delay_us(200);
+
+        // wait for echo
+        int ret = net_get32(s, &got);
+        if (!ret) {
             ntimeout++;
-        } else if (got != exp) {
-            nrf_output("server: received %u (expected %u)\n", got, exp);
-        } else {
-            npackets++;
+            continue;
         }
+
+        if (got != exp) {
+            nrf_output("server: received %u (expected %u)\n", got, exp);
+            continue;
+        }
+
+        npackets++;
     }
 
-    trace("server done: %d packets, %d timeouts\n", npackets, ntimeout);
+    trace("SERVER DONE: success=%d timeouts=%d\n", npackets, ntimeout);
+
     nrf_stat_print(s, "server");
 }
