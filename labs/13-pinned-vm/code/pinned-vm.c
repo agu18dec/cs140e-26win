@@ -113,10 +113,10 @@ void pin_mmu_sec(unsigned idx,
     uint32_t b   = (mem >> 0) & 0b1;
     
     // write to lockdown attributes register
-    attr = bits_set(attr, 7, 10, e.dom); // domain (no access/client/manager)
-    attr = bits_set(attr, 3, 5,  tex); // type ext
-    attr = bits_set(attr, 1, 1,  c); // cacheable
-    attr = bits_set(attr, 0, 0,  b); // bufferable
+    attr = bits_set(attr, 7, 10, e.dom);
+    attr = bits_set(attr, 1, 5, e.mem_attr);
+    //lockdown_attr_set_raw(attr);
+    
 
     // pa register
     pa_ent = bits_set(pa_ent, 12, 31, bits_get(pa, 12, 31));

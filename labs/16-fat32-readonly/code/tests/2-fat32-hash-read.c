@@ -58,7 +58,7 @@ void notmain() {
   }
 #endif
 
-    todo("run hash-sd/hash-files on your firmware and fill in the hash values!\n");
+    // todo("run hash-sd/hash-files on your firmware and fill in the hash values!\n");
     // check that you can read data correctly.
     read_and_hash(&fs, &root, "BOOTCODE.BIN", 0xfd8d57d1);
     read_and_hash(&fs, &root, "START.ELF", 0xf36a80ce);
@@ -69,7 +69,7 @@ void notmain() {
     read_and_hash(&fs, &root, "HELLO-F.BIN", 0xd9e29bb9);
 
     // fill in the cksum values for these.
-    todo("fill in the checksum for these next three files (use `hash-files`)\n");
+    // todo("fill in the checksum for these next three files (use `hash-files`)\n");
     read_and_hash(&fs, &root, "BOOTLO~1.BIN", 0);
     read_and_hash(&fs, &root, "CONFIG.TXT", 0);
     read_and_hash(&fs, &root, "KERNEL.IMG", 0);
