@@ -26,22 +26,22 @@ COMMON_SRC += pt-vm.c
 # WHEN DONE: get rid of staff .o's doing the two steps below
 
 # Step 1. comment this out and make sure tests pass.
-STAFF_OBJS += staff-pt-vm.o
+#STAFF_OBJS += staff-pt-vm.o
 
 # Step 2. comment out our code and put in yours
 #  Comment all these out (they are just clean copies of the starter 
 #  code from lab 15):
-COMMON_SRC += ORIG-your-mmu-asm.S
-COMMON_SRC += ORIG-mmu.c
+# COMMON_SRC += ORIG-your-mmu-asm.S
+# COMMON_SRC += ORIG-mmu.c
 
-# Comment these staff .o's out. 
-STAFF_OBJS += staff-mmu.o
-STAFF_OBJS += staff-mmu-asm.o
+# # Comment these staff .o's out. 
+# STAFF_OBJS += staff-mmu.o
+# STAFF_OBJS += staff-mmu-asm.o
 
 # Uncommment these.  make sure tests pass.
 YOUR_VM = $(CS140E_2026_PATH)/labs/15-vm-coherence/code/
-# COMMON_SRC += $(YOUR_VM)/mmu.c
-# COMMON_SRC += $(YOUR_VM)/your-mmu-asm.S
+COMMON_SRC += $(YOUR_VM)/mmu.c
+COMMON_SRC += $(YOUR_VM)/your-mmu-asm.S
 
 # if tests pass: DONE!  
 # if tests pass: DONE!  

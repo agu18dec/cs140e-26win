@@ -45,7 +45,7 @@ MK_FN(mmu_reset)
 
     DSB(r0)
 
-    FLUSH_BTB(r0)
+    // FLUSH_BTB(r0)
 
     // Make BTB flush + CP15-visible effects visible to instruction fetch.
     PREFETCH_FLUSH(r0)
@@ -119,12 +119,11 @@ MK_FN(mmu_disable_set_asm)
     CLEAN_INV_DCACHE(r1)
     DSB(r1)
 
-    INV_ICACHE(r1)
-    DSB(r1)
-
     // disable MMU
     CONTROL_REG1_WR(r0)
+    INV_ICACHE(r1)
     DSB(r1)
+    // DSB(r1)
     FLUSH_BTB(r1)
     DSB(r1)
     PREFETCH_FLUSH(r1)
@@ -142,15 +141,13 @@ MK_FN(mmu_disable_set_asm)
 MK_FN(mmu_enable_set_asm)
     // r1 will be our SBZ=0 operand for CP15 maintenance ops
     mov r1, #0
-    DSB(r1)
     // Enable MMU 
-    INV_ICACHE(r1)
-    DSB(r1)
     bic r0, r0, #(1 << 12)  @ disable I-cache
     CONTROL_REG1_WR(r0)
-    DSB(r1)
     FLUSH_BTB(r1)
     PREFETCH_FLUSH(r1)
+    INV_ICACHE(r1)
+    DSB(r1)
     orr r0, r0, #(1 << 12)    @ re-enable I-cache
     DSB(r1)
     CONTROL_REG1_WR(r0)
@@ -161,13 +158,13 @@ MK_FN(mmu_sync_pte_mods)
     mov r0, #0
     // clean/invalidate dcache
     CLEAN_INV_DCACHE(r0)
+    // invalidate I-cache
+    INV_ICACHE(r0)
     DSB(r0)
     // invalidate TLB
     INV_TLB(r0)
     // invalidate BTB
     FLUSH_BTB(r0)
-    // invalidate I-cache
-    INV_ICACHE(r0)
     // Ensure TLB/cache/BTB maintenance complete.
     DSB(r0)
     PREFETCH_FLUSH(r0)
